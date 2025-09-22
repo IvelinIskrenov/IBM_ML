@@ -165,7 +165,7 @@ class FuelCO2Model:
 
     def run(self):
         self.load_data()
-        self.visualize_pairplot()
+        #self.visualize_pairplot()
         self.extract_cols()
         self.preprocess()
         self.split()
