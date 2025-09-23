@@ -57,7 +57,10 @@ class Logistic_model:
             )
         
     def train(self):
-        self.logisticRegressor = LogisticRegression(solver='lbfgs', penalty='l2', C=1.0, max_iter=2).fit(self.X_train, self.y_train) #l1 = lasso
+        self.logisticRegressor = LogisticRegression(
+            solver='lbfgs', penalty='l2', C=1.0, max_iter=2
+            ).fit(self.X_train, self.y_train) #l1 = lasso, choose the best features /solver='lbfgs', penalty='l2', C=1.0, max_iter=2/
+        #With Lasso = l1 & solver='liblinear' there is a 0.5% better accurancy at cross validaton
         
         self.yhat = self.logisticRegressor.predict(self.X_test)
         #print(self.yhat[:10])
