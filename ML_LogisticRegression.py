@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
-from sklearn.model_selection import train_test_split #!
+from sklearn.model_selection import train_test_split , cross_val_score #!
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import f1_score
+#from sklearn.metrics import recall_score
+#from sklearn.metrics import f1_score
+
 
 class Logistic_model:
     """
@@ -45,7 +46,7 @@ class Logistic_model:
         self.churn_df = self.churn_df[['tenure', 'income', 'ed', 'equip', 'churn']]#, 'equip'
         self.churn_df['churn'] = self.churn_df['churn'].astype('int') #set the predicted value as type int
         
-        self.X = np.asarray(self.churn_df[['tenure',  'income', 'ed', 'equip']]) # ,'age', 'address',||, 'employ' ,,'wireless'
+        self.X = np.asarray(self.churn_df[['tenure', 'income', 'ed', 'equip']]) # ,'age', 'address',||, 'employ' ,,'wireless'
         self.y = np.asarray(self.churn_df['churn'])
         
         self.X_norm = StandardScaler().fit(self.X).transform(self.X)
@@ -77,9 +78,16 @@ class Logistic_model:
         accuracy = accuracy_score(self.y_test, y_pred)
         print("Accuracy: {:.2f}%".format(accuracy * 100))
         
+    def cross_validation(self):
+        scores = cross_val_score(self.logisticRegressor, self.X_norm, self.y, cv=10)
+        print("Cross-validation scores: ", scores)
+        print("Mean cross-validation accuracy: {:.2f}%".format(scores.mean() * 100))
+        
     def evaluate(self):
         self.accurancy()
+        self.cross_validation()
         
+    #Show us vision of that, which feature is better
     def drop_column_logloss(self):
         base_prob = self.logisticRegressor.predict_proba(self.X_test)
         base_loss = log_loss(self.y_test, base_prob)
@@ -112,7 +120,7 @@ class Logistic_model:
         self.splitDataSet()
         self.train()
         self.evaluate()
-        #self.drop_column_logloss()
+        self.drop_column_logloss()
         
 if __name__ == '__main__':
     model = Logistic_model()
