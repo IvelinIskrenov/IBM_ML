@@ -17,9 +17,9 @@ class FuelEmissions:
         self.regr = None
 
     def load_data(self):
-        """
-        Loads the data from a CSV file.
-        """
+        '''
+        Loads the data from a CSV file and get ready for preprocessing
+        '''
         url = self.url
         #Read the data file into a DataFrame.
         df = pd.read_csv(url) 
@@ -32,9 +32,7 @@ class FuelEmissions:
         self.cdf = cdf
 
     def run_regression_enginesize(self):
-        """
-        Predicts emissions based on engine size.
-        """
+        '''Predicts emissions based on engine size.'''
         X = self.cdf.ENGINESIZE.to_numpy()
         y = self.cdf.CO2EMISSIONS.to_numpy()
         
@@ -75,9 +73,7 @@ class FuelEmissions:
         plt.show()
 
     def run_regression_fuelconsumption(self):
-        """
-        Predicts emissions based on fuel consumption.
-        """
+        '''Predicts emissions based on fuel consumption.'''
         #set up the input and output data.
         X = self.cdf.FUELCONSUMPTION_COMB.to_numpy()
         y = self.cdf.CO2EMISSIONS.to_numpy()
@@ -96,9 +92,7 @@ class FuelEmissions:
         print("R2-score: %.2f" % r2_score(y_test, y_test_))
 
     def run(self):
-        """
-        Runs the entire analysis process.
-        """
+        '''Runs the entire analysis process'''
         self.load_data()
         # self.show_examples()  
         self.run_regression_enginesize()

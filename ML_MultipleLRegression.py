@@ -9,6 +9,9 @@ from sklearn import linear_model as lm
 
 
 class FuelCO2Model:
+    '''
+    Multiple Linear Regression model to predict CO2 emissions from vehicle data.
+    '''
     def __init__(self, url: str = None):
         self.url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%202/data/FuelConsumptionCo2.csv"
         self.df = None
@@ -23,7 +26,7 @@ class FuelCO2Model:
         self.mRegression = None
 
     def load_data(self):
-        """load in dataframe"""
+        '''loads data and performs init cleaning'''
         self.df = pd.read_csv(self.url)
         print("Sample 5 rows:")
         print(self.df.sample(5))
@@ -49,6 +52,7 @@ class FuelCO2Model:
         # from this example, we see that the fuel con. and CO2 are no linear
 
     def extract_cols(self):
+        '''Extracts the features cols'''
         #self.X = self.df[['ENGINESIZE', 'VEHICLEWEIGHT']].to_numpy()
         #self.y = self.df[['CO2EMISSIONS']].to_numpy()
         self.X = self.df.iloc[:,[0,1]]
@@ -56,6 +60,7 @@ class FuelCO2Model:
 
     # - Preprocess selected features - #
     def preprocess(self):
+        '''Standardizes'''
         self.std_scaler = StandardScaler()
         self.X_std = self.std_scaler.fit_transform(self.X)
 
@@ -64,12 +69,14 @@ class FuelCO2Model:
 
     # - Create train and test dataset - #
     def split(self, test_size: float = 0.2, random_state: int = 42):
+        '''splits the data'''
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
             self.X_std, self.y, test_size=test_size, random_state=random_state
         )
 
     # - Build ML Regression - #
     def train(self): 
+        '''Trains and build the Multiple linear Regression'''
         self.mRegression = lm.LinearRegression()
         self.mRegression.fit(self.X_train, self.y_train)
 
@@ -92,6 +99,7 @@ class FuelCO2Model:
 
     #from stackoverflow(IBM VS)
     def visualize_3d(self):
+        '''Visiz. the regression plane in 3D'''
         coef_ = self.mRegression.coef_
         intercept_ = self.mRegression.intercept_
 
@@ -148,6 +156,7 @@ class FuelCO2Model:
 
 
     def simple_2d_plots_vis(self):
+        '''2D plots for individual feature relationships'''
         coef_ = self.mRegression.coef_
         intercept_ = self.mRegression.intercept_
 
