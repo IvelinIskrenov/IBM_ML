@@ -35,6 +35,7 @@ class Logistic_model:
         
         
     def loadData(self):
+        '''Load the data from the url and describe it'''
         if self.url == None:
             self.url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%203/data/ChurnData.csv"
         self.churn_df = pd.read_csv(self.url)
@@ -42,6 +43,7 @@ class Logistic_model:
         #print(self.churn_df.sample(5))
     
     def preprocessing(self):
+        '''Change the pred. value -> int, set the cols and standardizing it '''
         print(self.churn_df.head(9))
         self.churn_df = self.churn_df[['tenure', 'income', 'ed', 'equip', 'churn']]#, 'equip'
         self.churn_df['churn'] = self.churn_df['churn'].astype('int') #set the predicted value as type int
@@ -57,8 +59,12 @@ class Logistic_model:
             )
         
     def train(self):
+        '''
+            Train the LogisticRegression model
+            Generates predicted labels - self.yhat && probabilities - yhat_prob for a test set
+        '''
         self.logisticRegressor = LogisticRegression(
-            solver='lbfgs', penalty='l2', C=1.0, max_iter=2
+            solver='lbfgs', penalty='l2', C=1.0, max_iter=100
             ).fit(self.X_train, self.y_train) #l1 = lasso, choose the best features /solver='lbfgs', penalty='l2', C=1.0, max_iter=2/
         #With Lasso = l1 & solver='liblinear' there is a 0.5% better accurancy at cross validaton
         
@@ -92,6 +98,7 @@ class Logistic_model:
         
     #Show us vision of that, which feature is better
     def drop_column_logloss(self):
+        '''Show us which of the feature are better then others to help you to select the best features'''
         base_prob = self.logisticRegressor.predict_proba(self.X_test)
         base_loss = log_loss(self.y_test, base_prob)
         print(f"Base log-loss (with all features): {base_loss:.6f}")
