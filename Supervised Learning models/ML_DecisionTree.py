@@ -64,8 +64,16 @@ class DecisionTreeModel():
         self.X_trainset, self.X_testset, self.y_trainset, self.y_testset = train_test_split(X, y, test_size=0.3, random_state=32)
     
     def train(self):
-        self.drugTree = DecisionTreeClassifier(criterion="entropy", max_depth = 4)
+        self.drugTree = DecisionTreeClassifier(criterion="entropy", max_depth = 4) # you can use the params for better accuracy
         self.drugTree.fit(self.X_trainset, self.y_trainset)
+        
+    def evaluation(self):
+        tree_predictions = self.drugTree.predict(self.X_testset)
+        print("Decision Trees's Accuracy: ", metrics.accuracy_score(self.y_testset, tree_predictions))
+        
+    def visualize(self):
+        plot_tree(self.drugTree)
+        plt.show()
         
     def run(self):
         self.download_data()
@@ -74,6 +82,8 @@ class DecisionTreeModel():
         self.distribution()
         self.split_data()
         self.train()
+        self.evaluation()
+        self.visualize()
         
 if __name__ == '__main__':
     model = DecisionTreeModel()
