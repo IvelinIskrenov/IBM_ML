@@ -7,6 +7,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error
 
 class RegressionTree():
+    '''RegressionTree model which predicts the tip amount (tip_amount) for yellow cab rides in New York'''
     def __init__(self):
         self.data = None
         self.X = None

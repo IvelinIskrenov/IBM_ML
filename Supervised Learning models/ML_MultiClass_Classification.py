@@ -10,7 +10,7 @@ from sklearn.multiclass import OneVsOneClassifier
 
 
 class MultiClass_Classification:
-    '''ML Alg. - multi_class_classification, which compare One_vs_All and One_vs_One strategy using LogisticRegression'''
+    '''ML Alg. - multi_class_classification, which compare One_vs_All and One_vs_One strategy using LogisticRegression - prediction of obesity levels'''
     def __init__(self):
         self.data = None
         self.scaled_data = None

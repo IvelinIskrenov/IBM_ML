@@ -8,6 +8,7 @@ from sklearn import metrics
 
 
 class DecisionTreeModel():
+    '''DecisionTree model that determine which drug is most suitable'''
     def __init__(self):
         self.data = None
         self.X_trainset = None
