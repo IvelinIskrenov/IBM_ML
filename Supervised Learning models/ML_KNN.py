@@ -2,11 +2,24 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+
 
 class KnnModel():
     '''Build and training classifier model KNN, which predict the service category for unknown cases'''
     def __init__(self):
         self.data = None
+        self.X = None
+        self.y = None
+        self.X_norm = None
+        self.X_train = None
+        self.X_test = None
+        self.y_train = None
+        self.y_test = None
+        self.model_KNN = None
     
     def load_data(self):
         '''Load data from url'''
@@ -25,11 +38,62 @@ class KnnModel():
         plt.show()
         
         correlation_values = abs(self.data.corr()['custcat'].drop('custcat')).sort_values(ascending=False)
-        print(correlation_values)      
+        print(correlation_values) 
+        
+        self.X = self.data.drop('custcat',axis=1)
+        self.y = self.data['custcat']     
     
+    def preprocessing(self):
+        self.X_norm = StandardScaler().fit_transform(self.X)
+    
+    def split_data(self):
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X_norm, self.y, test_size=0.2, random_state=4)
+        
+    def build_train_KNN(self):
+        
+        #hyperparam k
+        k = 3
+        #Train Model and Predict  
+        knn_classifier = KNeighborsClassifier(n_neighbors=k)
+        self.model_KNN = knn_classifier.fit(self.X_train, self.y_train)
+        
+    def evaluatuion(self):
+        yhat = self.model_KNN.predict(self.X_test)
+        print("Test set Accuracy: ", accuracy_score(self.y_test, yhat))
+       
+    def k_tuning(self):
+        '''Tuning the hyperparam k, to optimize the best k value'''
+        Ks = 100
+        acc = np.zeros((Ks))
+        std_acc = np.zeros((Ks))
+        for n in range(1,Ks+1): 
+            KNN_tuning_model = KNeighborsClassifier(n_neighbors = n).fit(self.X_train, self.y_train)
+            yhat = KNN_tuning_model.predict(self.X_train) #x-set
+            acc[n-1] = accuracy_score(self.y_train, yhat) #Y-test
+            std_acc[n-1] = np.std(yhat==self.y_train)/np.sqrt(yhat.shape[0]) #y-test
+        
+        self.plot_k_tuning(Ks, acc, std_acc)
+
+    def plot_k_tuning(self,Ks,acc,std_acc):
+        plt.plot(range(1,Ks+1),acc,'g')
+        plt.fill_between(range(1,Ks+1),acc - 1 * std_acc,acc + 1 * std_acc, alpha=0.10)
+        plt.legend(('Accuracy value', 'Standard Deviation'))
+        plt.ylabel('Model Accuracy')
+        plt.xlabel('Number of Neighbors (K)')
+        plt.tight_layout()
+        plt.show()
+        print( "The best accuracy was with", acc.max(), "with k =", acc.argmax()+1) 
+        
     def run(self):
        self.load_data() 
        self.data_analysis()
+       self.preprocessing()
+       self.split_data()
+       self.build_train_KNN()
+       self.evaluatuion()
+       self.k_tuning()
+        
+#improve the model!!!        
 
 if __name__ == '__main__':
     model = KnnModel()
