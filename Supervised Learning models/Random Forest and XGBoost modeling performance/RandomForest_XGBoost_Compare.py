@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from xgboost import XGBRegressor
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
@@ -54,9 +55,15 @@ class HousePrediction():
         self.model_RandomForest.fit(self.X_train, self.y_train)
         end_time_rf = time.time()
         rf_train_time = end_time_rf - start_time_rf
+        print(f'Random Forest train time = {rf_train_time:.4f}')
         
-    #def model_XGBoost(self):
-        #xgboost = XGBRegressor(n_estimators=self.n_estimators, random_state=42)
+    def Build_Train_model_XGBoost(self):
+        self.model_XGBoost = XGBRegressor(n_estimators=self.n_estimators, random_state=42)
+        start_time_xgb = time.time()
+        self.model_XGBoost.fit(self.X_train, self.y_train)
+        end_time_xgb = time.time()
+        xgb_train_time = end_time_xgb - start_time_xgb
+        print(f'XGBoost train time = {xgb_train_time:.4f}')
     
     def evaluation(self):
         #Measure prediction time for Random Forest
@@ -66,12 +73,12 @@ class HousePrediction():
         RF_pred_time = end_time_RF - start_time_RF
         
         #Measure prediciton time for XGBoost
-        #start_time_XGB = time.time()
-        #y_pred_XGB = self.model_XGBoost.predict(self.X_test)
-        #end_time_XGB = time.time()
-        #XGB_pred_time = end_time_XGB - start_time_XGB
+        start_time_XGB = time.time()
+        y_pred_XGB = self.model_XGBoost.predict(self.X_test)
+        end_time_XGB = time.time()
+        XGB_pred_time = end_time_XGB - start_time_XGB
         
-        #self.R2_MSE(y_pred_RF,y_pred_XGB)
+        self.R2_MSE(y_pred_RF,y_pred_XGB)
             
     def R2_MSE(self, y_pred_RF, y_pred_XGB):    
         mse_RF = mean_squared_error(self.y_test, y_pred_RF)
@@ -85,6 +92,10 @@ class HousePrediction():
     def run(self):
         self.load_data()  
         self.data_analysis()
+        self.split_data()
+        self.Build_Train_model_XGBoost()
+        self.Build_Train_RandomForest()
+        self.evaluation()
         
 if __name__ == '__main__':
     model = HousePrediction()
