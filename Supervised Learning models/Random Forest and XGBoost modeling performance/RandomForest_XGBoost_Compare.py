@@ -50,6 +50,7 @@ class HousePrediction():
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
           
     def Build_Train_RandomForest(self):
+        '''Build and traing RandomForest model'''
         self.model_RandomForest = RandomForestRegressor(n_estimators=self.n_estimators, random_state=42)
         start_time_rf = time.time()
         self.model_RandomForest.fit(self.X_train, self.y_train)
@@ -58,6 +59,7 @@ class HousePrediction():
         print(f'Random Forest train time = {rf_train_time:.4f}')
         
     def Build_Train_model_XGBoost(self):
+        '''Build and traing XGBoost model && XGBoost library should be installed'''
         self.model_XGBoost = XGBRegressor(n_estimators=self.n_estimators, random_state=42)
         start_time_xgb = time.time()
         self.model_XGBoost.fit(self.X_train, self.y_train)
@@ -66,6 +68,7 @@ class HousePrediction():
         print(f'XGBoost train time = {xgb_train_time:.4f}')
     
     def evaluation(self):
+        '''Evaluation with MSE and R^2 and time printing'''
         #Measure prediction time for Random Forest
         start_time_RF = time.time()
         y_pred_RF = self.model_RandomForest.predict(self.X_test)
@@ -79,8 +82,12 @@ class HousePrediction():
         XGB_pred_time = end_time_XGB - start_time_XGB
         
         self.R2_MSE(y_pred_RF,y_pred_XGB)
+        #print(f'Random Forest:  Training Time = {rf_train_time:.3f} seconds, Testing time = {rf_pred_time:.3f} seconds')
+        #print(f'      XGBoost:  Training Time = {xgb_train_time:.3f} seconds, Testing time = {xgb_pred_time:.3f} seconds')
+        #std_y = np.std(y_test)
             
-    def R2_MSE(self, y_pred_RF, y_pred_XGB):    
+    def R2_MSE(self, y_pred_RF, y_pred_XGB):
+        '''Calculate and printing the MSE and R^2 values for both models'''    
         mse_RF = mean_squared_error(self.y_test, y_pred_RF)
         mse_XGB = mean_squared_error(self.y_test, y_pred_XGB)
         r2_RF = r2_score(self.y_test, y_pred_RF)
