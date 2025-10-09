@@ -3,6 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+#from xgboost import XGBRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+import time
 
 class HousePrediction():
     '''
@@ -19,6 +23,7 @@ class HousePrediction():
         self.X_test = None
         self.y_train = None
         self.y_test = None
+        self.n_estimators=100
         
     def load_data(self):
         '''Load the data from sklearn.dataset'''
@@ -43,6 +48,40 @@ class HousePrediction():
     def split_data(self):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
           
+    def Build_Train_RandomForest(self):
+        self.model_RandomForest = RandomForestRegressor(n_estimators=self.n_estimators, random_state=42)
+        start_time_rf = time.time()
+        self.model_RandomForest.fit(self.X_train, self.y_train)
+        end_time_rf = time.time()
+        rf_train_time = end_time_rf - start_time_rf
+        
+    #def model_XGBoost(self):
+        #xgboost = XGBRegressor(n_estimators=self.n_estimators, random_state=42)
+    
+    def evaluation(self):
+        #Measure prediction time for Random Forest
+        start_time_RF = time.time()
+        y_pred_RF = self.model_RandomForest.predict(self.X_test)
+        end_time_RF = time.time()
+        RF_pred_time = end_time_RF - start_time_RF
+        
+        #Measure prediciton time for XGBoost
+        #start_time_XGB = time.time()
+        #y_pred_XGB = self.model_XGBoost.predict(self.X_test)
+        #end_time_XGB = time.time()
+        #XGB_pred_time = end_time_XGB - start_time_XGB
+        
+        #self.R2_MSE(y_pred_RF,y_pred_XGB)
+            
+    def R2_MSE(self, y_pred_RF, y_pred_XGB):    
+        mse_RF = mean_squared_error(self.y_test, y_pred_RF)
+        mse_XGB = mean_squared_error(self.y_test, y_pred_XGB)
+        r2_RF = r2_score(self.y_test, y_pred_RF)
+        r2_XGB = r2_score(self.y_test, y_pred_XGB)
+        
+        print(f'Random Forest:  MSE = {mse_RF:.4f}, R^2 = {r2_RF:.4f}')
+        print(f'      XGBoost:  MSE = {mse_XGB:.4f}, R^2 = {r2_XGB:.4f}')
+        
     def run(self):
         self.load_data()  
         self.data_analysis()
