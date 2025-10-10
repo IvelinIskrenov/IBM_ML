@@ -25,6 +25,7 @@ class HousePrediction():
         self.y_train = None
         self.y_test = None
         self.n_estimators=100
+        self.std_y = None
         
     def load_data(self):
         '''Load the data from sklearn.dataset'''
@@ -84,7 +85,12 @@ class HousePrediction():
         self.R2_MSE(y_pred_RF,y_pred_XGB)
         #print(f'Random Forest:  Training Time = {rf_train_time:.3f} seconds, Testing time = {rf_pred_time:.3f} seconds')
         #print(f'      XGBoost:  Training Time = {xgb_train_time:.3f} seconds, Testing time = {xgb_pred_time:.3f} seconds')
-        #std_y = np.std(y_test)
+        self.std_y = np.std(self.y_test)
+        
+        print(f"Do you want visualize the models Y/N ?")
+        vision = input()
+        if vision == "Y":
+            self.visualize(y_pred_RF, y_pred_XGB)
             
     def R2_MSE(self, y_pred_RF, y_pred_XGB):
         '''Calculate and printing the MSE and R^2 values for both models'''    
@@ -95,6 +101,36 @@ class HousePrediction():
         
         print(f'Random Forest:  MSE = {mse_RF:.4f}, R^2 = {r2_RF:.4f}')
         print(f'      XGBoost:  MSE = {mse_XGB:.4f}, R^2 = {r2_XGB:.4f}')
+    
+    def visualize(self, y_pred_RF, y_pred_XGB):
+        '''Visualiza the RandomForest && XGBoost models'''
+        plt.figure(figsize=(14, 6))
+
+        # Random Forest plot
+        plt.subplot(1, 2, 1)
+        plt.scatter(self.y_test, y_pred_RF, alpha=0.5, color="blue",ec='k')
+        plt.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'k--', lw=2,label="perfect model")
+        plt.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min() + self.std_y, self.y_test.max() + self.std_y], 'r--', lw=1, label="+/-1 Std Dev")
+        plt.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min() - self.std_y, self.y_test.max() - self.std_y], 'r--', lw=1, )
+        plt.ylim(0,6)
+        plt.title("Random Forest Predictions vs Actual")
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.legend()
+
+
+        # XGBoost plot
+        plt.subplot(1, 2, 2)
+        plt.scatter(self.y_test, y_pred_XGB, alpha=0.5, color="orange",ec='k')
+        plt.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'k--', lw=2,label="perfect model")
+        plt.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min() + self.std_y, self.y_test.max() + self.std_y], 'r--', lw=1, label="+/-1 Std Dev")
+        plt.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min() - self.std_y, self.y_test.max() - self.std_y], 'r--', lw=1, )
+        plt.ylim(0,6)
+        plt.title("XGBoost Predictions vs Actual")
+        plt.xlabel("Actual Values")
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
         
     def run(self):
         self.load_data()  
