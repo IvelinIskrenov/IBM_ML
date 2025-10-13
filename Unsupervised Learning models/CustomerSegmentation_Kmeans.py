@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 import plotly.express as px 
 import seaborn as sns
-from sklearn.datasets import make_blobs
 from sklearn.cluster import KMeans 
 from sklearn.preprocessing import StandardScaler
 
@@ -70,13 +69,37 @@ class CustomerSegmentation():
         plt.xlabel('Age', fontsize=18)
         plt.ylabel('Income', fontsize=16)
         plt.show()  
-              
+    
+    def visual_plot_3D(self):
+        fig = px.scatter_3d(self.X, x=1, y=0, z=3, opacity=0.7, color=self.labels.astype(float))
+
+        fig.update_traces(marker=dict(size=5, line=dict(width=.25)), showlegend=False)
+        fig.update_layout(coloraxis_showscale=False, width=1000, height=800, scene=dict(
+                xaxis=dict(title='Education'),
+                yaxis=dict(title='Age'),
+                zaxis=dict(title='Income')
+            ))  # Remove color bar, resize plot
+
+        fig.show()       
+    
+    def create_profile_foreach_Group(self):
+        '''considering the common characteristics of each cluster based on your observations'''
+        cust_df_sub = self.data[['Age', 'Edu','Income','Clus_km']].copy() 
+        sns.pairplot(cust_df_sub, hue='Clus_km', palette='viridis', diag_kind='kde') 
+        plt.suptitle('Pairwise Scatter Plot with K-means Clusters', y=1.02)
+        plt.show()
+        # 3- clusters can be
+        # LATE CAREER, AFFLUENT, AND EDUCATED
+        # MID CAREER AND MIDDLE INCOME
+        # EARLY CAREER AND LOW INCOME          
         
     def run(self):
         self.load_data()
         self.preprocessing()
         self.train_model_Kmeans()
         self.data_exploration()
+        self.visual_plot_3D()
+        self.create_profile_foreach_Group()
 
 
 if __name__ == "__main__":
