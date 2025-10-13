@@ -1,8 +1,14 @@
 import numpy as np 
 import pandas as pd
 import matplotlib.pyplot as plt 
+import plotly.express as px # pyright: ignore[reportMissingImports]
+import seaborn as sns
 from sklearn.datasets import make_blobs
 from sklearn.cluster import KMeans 
+from sklearn.preprocessing import StandardScaler
+
+import warnings
+warnings.filterwarnings('ignore')
 
 class K_means():
     '''
@@ -39,11 +45,11 @@ class K_means():
         self.model = KMeans(init = "k-means++", n_clusters = self.n_clusters, n_init = self.n_init)
         self.model.fit(self.X)
         
-        k_means_labels = self.model.labels_
-        print(k_means_labels)
+        self.k_means_labels = self.model.labels_
+        print(self.k_means_labels)
         
-        k_means_cluster_centers = self.model.cluster_centers_
-        print(k_means_cluster_centers)
+        self.k_means_cluster_centers = self.model.cluster_centers_
+        print(self.k_means_cluster_centers)
         
     def visual_plot_Kmeans(self):
         #Init the plot with the specified dimensions
