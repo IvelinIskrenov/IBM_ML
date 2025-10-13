@@ -1,0 +1,84 @@
+import numpy as np 
+import pandas as pd
+import matplotlib.pyplot as plt 
+import plotly.express as px 
+import seaborn as sns
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans 
+from sklearn.preprocessing import StandardScaler
+
+import warnings
+warnings.filterwarnings('ignore')
+
+class CustomerSegmentation():
+    '''
+        Build and train K-means one group might contain customers who are high-profit and low-risk, 
+        or more likely to purchase products, or subscribe to a service. A business task is to retain those customers
+        
+        K-means++ : selects initial cluster centres for k-means clustering in a smart way to speed up convergence
+        n_init : n times - k-means Alg. will be run with different centroid seeds
+    '''
+    def __init__(self):
+        self.data = None
+        self.std_data = None
+        self.n_clusters = None # this is the K in k-means
+        self.n_init = None
+        self.X = None
+        self.y = None
+        self.k_means = None
+        #self.k_means_labels = None
+        self.labels = None
+        #self.k_means_cluster_centers = None
+        
+        
+    def load_data(self):
+        if self.data == None:
+            self.data = pd.read_csv("https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%204/data/Cust_Segmentation.csv")
+        
+    def preprocessing(self):
+        '''Drop the address col to remains only numerical data && Standartizing the data'''
+        self.data = self.data.drop('Address', axis=1)
+        self.data = self.data.dropna()
+        print(self.data.info())
+        
+        self.X = self.data.values[:,1:] #leaves out - Customer ID
+        self.std_data = StandardScaler().fit_transform(self.X)
+        
+        
+    def visualizing_data(self):
+        '''Visualize the data clusters i plot'''
+        np.random.seed(0)
+        plt.scatter(self.X[:, 0], self.X[:, 1], marker='.',alpha=0.3,ec='k',s=80)
+        plt.show()
+
+    def train_model_Kmeans(self,n__clusters = 3, n__init = 12):
+        '''Train and build k-means++ with 3 clusters and 12 inits (default)'''
+        self.n_clusters = n__clusters
+        self.n_init = n__init
+        
+        self.k_means = KMeans(init="k-means++", n_clusters = self.n_clusters, n_init = self.n_init)
+        self.k_means.fit(self.X)
+        self.labels = self.k_means.labels_
+        
+    def data_exploration(self):
+        '''Add new col "Clus_km" && show the clusters in 2d'''
+        self.data["Clus_km"] = self.labels
+        self.data.groupby('Clus_km').mean()
+        
+        area = np.pi * ( self.X[:, 1])**2  
+        plt.scatter(self.X[:, 0], self.X[:, 3], s=area, c=self.labels.astype(float), cmap='tab10', ec='k',alpha=0.5)
+        plt.xlabel('Age', fontsize=18)
+        plt.ylabel('Income', fontsize=16)
+        plt.show()  
+              
+        
+    def run(self):
+        self.load_data()
+        self.preprocessing()
+        self.train_model_Kmeans()
+        self.data_exploration()
+
+
+if __name__ == "__main__":
+    model = CustomerSegmentation()
+    model.run()

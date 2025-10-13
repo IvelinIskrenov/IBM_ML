@@ -18,8 +18,7 @@ class K_means():
         The final results will be the best output of n_init consecutive runs in terms of inertia
     '''
     def __init__(self):
-        self.k = None
-        self.n_clusters = None
+        self.n_clusters = None # this is the K in k-means
         self.n_init = None
         self.X = None
         self.y = None
@@ -94,3 +93,16 @@ class K_means():
 if __name__ == "__main__":
     model = K_means()
     model.run()
+    
+    model.train_model(3,12)
+    model.visual_plot_Kmeans()
+    
+    model.train_model(5,12)
+    model.visual_plot_Kmeans()
+    
+    # For k=3, the value of within-cluster sum of squares will be higher that that for k=4, 
+    # since the points from different natural clusters are being grouped together, leading to underfitting of the k-means model. 
+    # For k=5, the value of will be lesser than that for k=4, since the points are distributed into mode clusters than needed, 
+    # leading to over-fitting of the k-means model.
+    
+    
