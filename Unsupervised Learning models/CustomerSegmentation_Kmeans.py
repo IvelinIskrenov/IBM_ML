@@ -12,8 +12,7 @@ warnings.filterwarnings('ignore')
 class CustomerSegmentation():
     '''
         Build and train K-means one group might contain customers who are high-profit and low-risk, 
-        or more likely to purchase products, or subscribe to a service. A business task is to retain those customers
-        
+        or more likely to purchase products, or subscribe to a service. A business task is to retain those customers      
         K-means++ : selects initial cluster centres for k-means clustering in a smart way to speed up convergence
         n_init : n times - k-means Alg. will be run with different centroid seeds
     '''
@@ -25,9 +24,7 @@ class CustomerSegmentation():
         self.X = None
         self.y = None
         self.k_means = None
-        #self.k_means_labels = None
         self.labels = None
-        #self.k_means_cluster_centers = None
         
         
     def load_data(self):
@@ -42,8 +39,7 @@ class CustomerSegmentation():
         
         self.X = self.data.values[:,1:] #leaves out - Customer ID
         self.std_data = StandardScaler().fit_transform(self.X)
-        
-        
+              
     def visualizing_data(self):
         '''Visualize the data clusters i plot'''
         np.random.seed(0)
@@ -100,7 +96,6 @@ class CustomerSegmentation():
         self.data_exploration()
         self.visual_plot_3D()
         self.create_profile_foreach_Group()
-
 
 if __name__ == "__main__":
     model = CustomerSegmentation()
