@@ -199,8 +199,8 @@ class MuseumClusterer():
 if __name__ == "__main__":
     download_extract_data()
     model = MuseumClusterer()
-    #model.compare_HDB_DB_SCAN()
-    model.run()
+    model.compare_HDB_DB_SCAN()
+    #model.run()
     #plot_clustered_locations(model.data)
     #1. from plot_clustered_locations we see that the clusters are not uniformly dense
     #2. DBSCAN agglomerates neighboring clusters together when they are close enough
