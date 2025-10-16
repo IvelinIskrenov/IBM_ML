@@ -7,8 +7,6 @@ from sklearn.preprocessing import StandardScaler
 class APP_PCA():
     '''
         Using PCA to project 2-D data onto its principal axes
-        &&
-        ...
     '''
     def __init__(self):
         self.data = None
