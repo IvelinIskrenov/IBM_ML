@@ -23,13 +23,13 @@ class MultiClass_Classification:
         self.y_test = None
         self.model_ova = None
     
-    def  load_data(self):
+    def  load_data(self) -> None:
         '''Load the data from the url'''
         if self.data == None:
             file_path = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/GkDzb7bWrtvGXdPOfk6CIg/Obesity-level-prediction-dataset.csv"
             self.data = pd.read_csv(file_path)
             
-    def data_analysis(self):
+    def data_analysis(self) -> None:
         '''Checks target distribution and visualizating the data'''
         #Distribution of target variable (check if the data is disbalanced)
         sns.countplot(y='NObeyesdad', data=self.data)
@@ -42,7 +42,7 @@ class MultiClass_Classification:
         print(self.data.info())
         print(self.data.describe())
     
-    def preprocessing(self):
+    def preprocessing(self) -> None:
         '''Standartizing the contin. num. features && scales by standard deviation'''
         #Standardizing continuous numerical features
         continuous_columns = self.data.select_dtypes(include=['float64']).columns.tolist()
@@ -56,7 +56,7 @@ class MultiClass_Classification:
         self.scaled_data = pd.concat([self.data.drop(columns=continuous_columns), scaled_df], axis=1)
     
     #turnig categorical into numerical data
-    def one_hot_encoding(self):
+    def one_hot_encoding(self) -> None:
         '''Encodes categorical features && encodes the target var.
             Prepare the data and the target'''
         #Identifying categorical columns
@@ -84,53 +84,59 @@ class MultiClass_Classification:
         self.y = self.prepped_data['NObeyesdad']
         
         
-    def split_data(self):
+    def split_data(self) -> None:
         '''Splits data into 80/20 % (train/test)'''
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42, stratify=self.y)
         
     #split data include
-    def ova(self):
+    def ova(self) -> None:
         '''
             Trains LogsticR using OvR (One vs All) strategy
             prints acc and visualizes feature importance based on coeff
         '''
-        self.model_ova = LogisticRegression(multi_class='ovr', max_iter=1000)
+        try:
+            self.model_ova = LogisticRegression(multi_class='ovr', max_iter=1000)
        
-        self.model_ova.fit(self.X_train, self.y_train)
+            self.model_ova.fit(self.X_train, self.y_train)
     
-        y_pred = self.model_ova.predict(self.X_test)
-        print("One-vs-All Accuracy (Test Size 0.2):", accuracy_score(self.y_test, y_pred))
+            y_pred = self.model_ova.predict(self.X_test)
+            print("One-vs-All Accuracy (Test Size 0.2):", accuracy_score(self.y_test, y_pred))
             
-        # Feature importance
-        feature_importance = np.mean(np.abs(self.model_ova.coef_), axis=0)
-        plt.barh(self.X.columns, feature_importance)
-        plt.title("Feature Importance")
-        plt.xlabel("Importance")
-        plt.show()
+            # Feature importance
+            feature_importance = np.mean(np.abs(self.model_ova.coef_), axis=0)
+            plt.barh(self.X.columns, feature_importance)
+            plt.title("Feature Importance")
+            plt.xlabel("Importance")
+            plt.show()
+        except Exception:
+            print("Error in (One vs All) strategy")    
 
-    def ovo(self):
+    def ovo(self) -> None:
         '''
             Trains LogsticR using OvO (One vs One) strategy
             prints acc and visualizes feature importance based on coeff
         '''
-        model_ovo = OneVsOneClassifier(LogisticRegression(max_iter=1000))
-    
-        model_ovo.fit(self.X_train, self.y_train)
-    
-        y_pred = model_ovo.predict(self.X_test)
-        print("One-vs-One Accuracy (Test Size 0.2):", accuracy_score(self.y_test, y_pred))
+        try:
             
-        # For One vs One model
-        # Collect all coefficients from each underlying binary classifier
-        coefs = np.array([est.coef_[0] for est in model_ovo.estimators_])
+            model_ovo = OneVsOneClassifier(LogisticRegression(max_iter=1000))
+    
+            model_ovo.fit(self.X_train, self.y_train)
+    
+            y_pred = model_ovo.predict(self.X_test)
+            print("One-vs-One Accuracy (Test Size 0.2):", accuracy_score(self.y_test, y_pred))
+            
+            # For One vs One model
+            # Collect all coefficients from each underlying binary classifier
+            coefs = np.array([est.coef_[0] for est in model_ovo.estimators_])
 
-        # Now take the mean across all those classifiers
-        feature_importance = np.mean(np.abs(coefs), axis=0)
-        plt.barh(self.X.columns, feature_importance)
-        plt.title("Feature Importance (One-vs-One)")
-        plt.xlabel("Importance")
-        plt.show()
-                
+            # Now take the mean across all those classifiers
+            feature_importance = np.mean(np.abs(coefs), axis=0)
+            plt.barh(self.X.columns, feature_importance)
+            plt.title("Feature Importance (One-vs-One)")
+            plt.xlabel("Importance")
+            plt.show()
+        except Exception:
+            print("Error in (One vs One) strategy")        
     
     def run(self):
         '''Executes the complete ML pipeline'''

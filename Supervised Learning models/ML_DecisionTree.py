@@ -17,13 +17,13 @@ class DecisionTreeModel():
         self.y_testset = None
         self.drugTree = None
         
-    def download_data(self):
+    def download_data(self) -> None:
         "downloading data"
         if self.data == None :
             path = 'https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%203/data/drug200.csv'
         self.data = pd.read_csv(path)
     
-    def data_analysis(self):
+    def data_analysis(self) -> None:
         '''Checks target distribution and visualizating the data'''
         #Dataset summary
         print(self.data.info()) #show us the type of data
@@ -31,7 +31,7 @@ class DecisionTreeModel():
         # 4 features should be convert from categorical to numecric data
         
     
-    def preprocessing(self):
+    def preprocessing(self) -> None:
         '''convert the object cols into numeric format'''
         label_encoder = LabelEncoder()
         self.data['Sex'] = label_encoder.fit_transform(self.data['Sex']) 
@@ -48,7 +48,7 @@ class DecisionTreeModel():
         print(self.data.drop('Drug',axis=1).corr()['Drug_num']) #!!!!!
         
         
-    def distribution(self):
+    def distribution(self) -> None:
         '''distribution of the dataset by plotting the count of the records with each drug recommendation'''
         category_counts = self.data['Drug'].value_counts()
 
@@ -60,28 +60,28 @@ class DecisionTreeModel():
         plt.xticks(rotation=45)  #Rotate labels for better readability if needed
         plt.show()
 
-    def split_data(self):
+    def split_data(self) -> None:
         y = self.data['Drug']
         X = self.data.drop(['Drug','Drug_num'], axis=1)
         
         self.X_trainset, self.X_testset, self.y_trainset, self.y_testset = train_test_split(X, y, test_size=0.3, random_state=32)
     
-    def train(self):
+    def train(self) -> None:
         '''train the model'''
         self.drugTree = DecisionTreeClassifier(criterion="entropy", max_depth = 4) # you can use the params for better accuracy
         self.drugTree.fit(self.X_trainset, self.y_trainset)
         
-    def evaluation(self):
+    def evaluation(self) -> None:
         '''evaluation with accurancy_score'''
         tree_predictions = self.drugTree.predict(self.X_testset)
         print("Decision Trees's Accuracy: ", metrics.accuracy_score(self.y_testset, tree_predictions))
         
-    def visualize(self):
+    def visualize(self) -> None:
         '''visualize tree'''
         plot_tree(self.drugTree)
         plt.show()
         
-    def run(self):
+    def run(self) -> None:
         self.download_data()
         self.data_analysis()
         self.preprocessing()

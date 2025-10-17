@@ -35,7 +35,7 @@ class CreditCardFraudDetection():
         self.model_DecisionTree = None
         
     @timed    
-    def load_data(self):
+    def load_data(self) -> None:
         '''Load the data from the url'''
         if self.data == None:
             url= "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%203/data/creditcard.csv"
@@ -43,7 +43,7 @@ class CreditCardFraudDetection():
         print("Data loaded")
         
     @timed 
-    def data_analysis(self):
+    def data_analysis(self) -> None:
         '''
         finds the best feature that correlate with the target and visul. the class sample counts
         finds top 6 features
@@ -71,7 +71,7 @@ class CreditCardFraudDetection():
         print(correlation_values)
         
     @timed 
-    def preprocessing(self):
+    def preprocessing(self) -> None:
         #standardize features by removing the mean and scaling to unit variance
         self.data.iloc[:, 1:30] = StandardScaler().fit_transform(self.data.iloc[:, 1:30])
         data_matrix = self.data.values
@@ -87,37 +87,37 @@ class CreditCardFraudDetection():
         print("Preprocess finished !!!")
      
     @timed    
-    def split_data(self):
+    def split_data(self) -> None:
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
         print("Split data done !!!")
     
     @timed     
-    def buildTrainSVM(self):
+    def buildTrainSVM(self) -> None:
         '''Builds and trains a balanced Linear SVM model'''
         self.model_SVM = LinearSVC(class_weight='balanced', random_state=31, loss="hinge", fit_intercept=False)
         self.model_SVM.fit(self.X_train, self.y_train)
     
     @timed     
-    def buildTrainDecisionTree(self):
+    def buildTrainDecisionTree(self) -> None:
         '''Builds and trains a Decision Tree (entropy, max_depth=4) with balanced sample weights'''
         w_train = compute_sample_weight('balanced', self.y_train)
         self.model_DecisionTree = DecisionTreeClassifier(criterion='entropy', max_depth=4, random_state=35)
         self.model_DecisionTree.fit(self.X_train, self.y_train, sample_weight=w_train)
     
     #roc_auc_score - how good models distinguish positive from negative ones
-    def evaluationSVM(self):
+    def evaluationSVM(self) -> None:
         '''evaluation with roc_auc_score on a SVM model'''
         y_pred_svm = self.model_SVM.decision_function(self.X_test)
         roc_auc_svm = roc_auc_score(self.y_test, y_pred_svm)
         print("SVM ROC-AUC score: {0:.3f}".format(roc_auc_svm)) 
         
-    def evaluationDecisionTree(self):
+    def evaluationDecisionTree(self) -> None:
         '''evaluation with roc_auc_score on a DecisionTree model'''
         y_pred_DecisionTree = self.model_DecisionTree.predict_proba(self.X_test)[:,1]
         roc_auc_DecisionTree = roc_auc_score(self.y_test, y_pred_DecisionTree)
         print('Decision Tree ROC-AUC score : {0:.3f}'.format(roc_auc_DecisionTree))  
         
-    def run(self):
+    def run(self) -> None:
         self.load_data()
         self.data_analysis()
         self.preprocessing()

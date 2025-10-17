@@ -17,13 +17,14 @@ class RegressionTree():
         self.y_train = None 
         self.y_test = None
         self.regressionTree = None
-    def download_data(self):
+        
+    def download_data(self) -> None:
         '''Download the data from the url'''
         if self.data == None:
             url = 'https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/pu9kbeSaAtRZ7RxdJKX9_A/yellow-tripdata.csv'
             self.data = pd.read_csv(url)
 
-    def data_analysis(self):
+    def data_analysis(self) -> None:
         '''Analisys the data, correleations ...'''
         self.data.describe()
         print(self.data.info())
@@ -35,7 +36,7 @@ class RegressionTree():
         
         abs(correlation_values).sort_values(ascending=False)[:3] #!!!
     
-    def preprocessing(self):
+    def preprocessing(self) -> None:
         '''Prepare data for training, normalize the feature matrix'''
         self.y = self.data[['tip_amount']].values.astype('float32')
         proc_data = self.data.drop(['tip_amount'], axis=1) # labeled matrix
@@ -49,14 +50,14 @@ class RegressionTree():
         self.X = normalize(self.X, axis=1, norm='l1', copy=False) 
         
         
-    def split_data(self):
+    def split_data(self) -> None:
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3, random_state=42)
     
-    def trainModel(self):
+    def trainModel(self) -> None:
        self.regressionTree = DecisionTreeRegressor(criterion='squared_error', max_depth=8, random_state=34)
        self.regressionTree.fit(self.X_train, self.y_train)
        
-    def evaluation(self):
+    def evaluation(self) -> None:
         # run inference using the sklearn model
         y_pred = self.regressionTree.predict(self.X_test)
 
@@ -67,7 +68,7 @@ class RegressionTree():
         r2_score = self.regressionTree.score(self.X_test,self.y_test)
         print('R^2 score : {0:.3f}'.format(r2_score))
         
-    def run(self):
+    def run(self) -> None:
         self.download_data()
         self.data_analysis()
         self.preprocessing()

@@ -27,14 +27,14 @@ class HousePrediction():
         self.n_estimators=100
         self.std_y = None
         
-    def load_data(self):
+    def load_data(self) -> None:
         '''Load the data from sklearn.dataset'''
         if self.data == None:
             self.data = fetch_california_housing()
         self.X = pd.DataFrame(self.data.data, columns=self.data.feature_names)
         self.y = self.data.target  
     
-    def data_analysis(self):
+    def data_analysis(self) -> None:
         '''Describe the data - Print the first rows, get the cols info and DType'''
         print(self.X.head())
         
@@ -47,10 +47,10 @@ class HousePrediction():
         print('Number of Observations: ' + str(N_observations))
         print('Number of Features: ' + str(N_features))
     
-    def split_data(self):
+    def split_data(self) -> None:
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
           
-    def Build_Train_RandomForest(self):
+    def Build_Train_RandomForest(self) -> None:
         '''Build and traing RandomForest model'''
         self.model_RandomForest = RandomForestRegressor(n_estimators=self.n_estimators, random_state=42)
         start_time_rf = time.time()
@@ -59,7 +59,7 @@ class HousePrediction():
         rf_train_time = end_time_rf - start_time_rf
         print(f'Random Forest train time = {rf_train_time:.4f}')
         
-    def Build_Train_model_XGBoost(self):
+    def Build_Train_model_XGBoost(self) -> None:
         '''Build and traing XGBoost model && XGBoost library should be installed'''
         self.model_XGBoost = XGBRegressor(n_estimators=self.n_estimators, random_state=42)
         start_time_xgb = time.time()
@@ -68,7 +68,7 @@ class HousePrediction():
         xgb_train_time = end_time_xgb - start_time_xgb
         print(f'XGBoost train time = {xgb_train_time:.4f}')
     
-    def evaluation(self):
+    def evaluation(self) -> None:
         '''Evaluation with MSE and R^2 and time printing'''
         #Measure prediction time for Random Forest
         start_time_RF = time.time()
@@ -92,7 +92,7 @@ class HousePrediction():
         if vision == "Y":
             self.visualize(y_pred_RF, y_pred_XGB)
             
-    def R2_MSE(self, y_pred_RF, y_pred_XGB):
+    def R2_MSE(self, y_pred_RF, y_pred_XGB) -> None:
         '''Calculate and printing the MSE and R^2 values for both models'''    
         mse_RF = mean_squared_error(self.y_test, y_pred_RF)
         mse_XGB = mean_squared_error(self.y_test, y_pred_XGB)
@@ -102,7 +102,7 @@ class HousePrediction():
         print(f'Random Forest:  MSE = {mse_RF:.4f}, R^2 = {r2_RF:.4f}')
         print(f'      XGBoost:  MSE = {mse_XGB:.4f}, R^2 = {r2_XGB:.4f}')
     
-    def visualize(self, y_pred_RF, y_pred_XGB):
+    def visualize(self, y_pred_RF, y_pred_XGB) -> None:
         '''Visualiza the RandomForest && XGBoost models'''
         plt.figure(figsize=(14, 6))
 
@@ -132,7 +132,7 @@ class HousePrediction():
         plt.tight_layout()
         plt.show()
         
-    def run(self):
+    def run(self) -> None:
         self.load_data()  
         self.data_analysis()
         self.split_data()
