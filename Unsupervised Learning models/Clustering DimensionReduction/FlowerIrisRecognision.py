@@ -23,9 +23,7 @@ class IrisRecognition():
         '''
         self.data = datasets.load_iris()
         self.X = self.data.data
-        self.y = self.data.target
-
-        
+        self.y = self.data.target      
 
     def preprocessing(self):
         scaler = StandardScaler()
