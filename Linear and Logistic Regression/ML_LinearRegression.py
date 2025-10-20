@@ -11,36 +11,39 @@ class FuelEmissions:
         if url is None:
             url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%202/data/FuelConsumptionCo2.csv"
         self.url = url
-        self.df = None
-        self.cdf = None
-        self.regressor = None
-        self.regr = None
+        self.__data = None
+        self.__cdf = None
+        self.__regressor = None
+        self.__regr = None
 
-    def load_data(self):
+    def load_data(self) -> None:
         '''
         Loads the data from a CSV file and get ready for preprocessing
         '''
-        url = self.url
-        #Read the data file into a DataFrame.
-        df = pd.read_csv(url) 
-        self.df = df
+        try:
+            url = self.url
+            #Read the data file into a DataFrame.
+            df = pd.read_csv(url) 
+            self.__data = df
 
-        print(df.sample(5))
+            print(df.sample(5))
 
-        #Selecting only the important cols
-        cdf = df[['ENGINESIZE','CYLINDERS','FUELCONSUMPTION_COMB','CO2EMISSIONS']]
-        self.cdf = cdf
+            #Selecting only the important cols
+            cdf = df[['ENGINESIZE','CYLINDERS','FUELCONSUMPTION_COMB','CO2EMISSIONS']]
+            self.__cdf = cdf
+        except Exception:
+            print(f"Error in loading data !!!")
 
-    def run_regression_enginesize(self):
+    def run_regression_enginesize(self) -> None:
         '''Predicts emissions based on engine size.'''
-        X = self.cdf.ENGINESIZE.to_numpy()
-        y = self.cdf.CO2EMISSIONS.to_numpy()
+        X = self.__cdf.ENGINESIZE.to_numpy()
+        y = self.__cdf.CO2EMISSIONS.to_numpy()
         
         #Split the data into training and testing sets.
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         regressor = linear_model.LinearRegression()
-        self.regressor = regressor
+        self.__regressor = regressor
         
         #train the model &&
         #reshape the data to fit the model's requirements.
@@ -72,17 +75,17 @@ class FuelEmissions:
         plt.ylabel("Emission")
         plt.show()
 
-    def run_regression_fuelconsumption(self):
+    def run_regression_fuelconsumption(self) -> None:
         '''Predicts emissions based on fuel consumption.'''
         #set up the input and output data.
-        X = self.cdf.FUELCONSUMPTION_COMB.to_numpy()
-        y = self.cdf.CO2EMISSIONS.to_numpy()
+        X = self.__cdf.FUELCONSUMPTION_COMB.to_numpy()
+        y = self.__cdf.CO2EMISSIONS.to_numpy()
         #Split the data into training and testing sets.
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         #Create and train the model.
         regr = linear_model.LinearRegression()
-        self.regr = regr
+        self.__regr = regr
         regr.fit(X_train.reshape(-1, 1), y_train)
         
         y_test_ = regr.predict(X_test.reshape(-1,1))
@@ -91,7 +94,7 @@ class FuelEmissions:
         print("Mean squared error: %.2f" % mean_squared_error(y_test, y_test_))
         print("R2-score: %.2f" % r2_score(y_test, y_test_))
 
-    def run(self):
+    def run(self) -> None:
         '''Runs the entire analysis process'''
         self.load_data()
         # self.show_examples()  

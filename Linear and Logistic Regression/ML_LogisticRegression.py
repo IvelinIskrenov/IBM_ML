@@ -21,97 +21,100 @@ class Logistic_model:
     """
     def __init__(self):
         self.url = None
-        self.churn_df = None
-        self.X = None
-        self.y = None
-        self.X_norm = None
-        self.X_train = None
-        self.X_test = None
-        self.y_train = None
-        self.y_test = None
-        self.logisticRegressor = None
-        self.yhat = None
-        self.coefficients = None
+        self.__churn_df = None
+        self.__X = None
+        self.__y = None
+        self.__X_norm = None
+        self.__X_train = None
+        self.__X_test = None
+        self.__y_train = None
+        self.__y_test = None
+        self.__logisticRegressor = None
+        self.__yhat = None
+        self.__coefficients = None
         
         
-    def loadData(self):
+    def loadData(self) -> None:
         '''Load the data from the url and describe it'''
         if self.url == None:
             self.url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%203/data/ChurnData.csv"
-        self.churn_df = pd.read_csv(self.url)
-        self.churn_df.describe()
+        self.__churn_df = pd.read_csv(self.url)
+        self.__churn_df.describe()
         #print(self.churn_df.sample(5))
     
-    def preprocessing(self):
+    def preprocessing(self) -> None:
         '''Change the pred. value -> int, set the cols and standardizing it '''
-        print(self.churn_df.head(9))
-        self.churn_df = self.churn_df[['tenure', 'income', 'ed', 'equip', 'churn']]#, 'equip'
-        self.churn_df['churn'] = self.churn_df['churn'].astype('int') #set the predicted value as type int
+        try:
+            print(self.__churn_df.head(9))
+            self.__churn_df = self.__churn_df[['tenure', 'income', 'ed', 'equip', 'churn']]#, 'equip'
+            self.__churn_df['churn'] = self.__churn_df['churn'].astype('int') #set the predicted value as type int
         
-        self.X = np.asarray(self.churn_df[['tenure', 'income', 'ed', 'equip']]) # ,'age', 'address',||, 'employ' ,,'wireless'
-        self.y = np.asarray(self.churn_df['churn'])
+            self.__X = np.asarray(self.__churn_df[['tenure', 'income', 'ed', 'equip']]) # ,'age', 'address',||, 'employ' ,,'wireless'
+            self.__y = np.asarray(self.__churn_df['churn'])
         
-        self.X_norm = StandardScaler().fit(self.X).transform(self.X)
-    
-    def splitDataSet(self, test_size: float = 0.2, random_state: int = 42):
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            self.X_norm, self.y, test_size = test_size, random_state = random_state
+            self.__X_norm = StandardScaler().fit(self.__X).transform(self.__X)
+        except Exception:
+            print(f"Error in preprocessing !!!")
+            
+    def splitDataSet(self, test_size: float = 0.2, random_state: int = 42)  -> None:
+        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(
+            self.__X_norm, self.__y, test_size = test_size, random_state = random_state
             )
         
-    def train(self):
+    def train(self) -> None:
         '''
             Train the LogisticRegression model
             Generates predicted labels - self.yhat && probabilities - yhat_prob for a test set
         '''
-        self.logisticRegressor = LogisticRegression(
+        self.__logisticRegressor = LogisticRegression(
             solver='lbfgs', penalty='l2', C=1.0, max_iter=100
-            ).fit(self.X_train, self.y_train) #l1 = lasso, choose the best features /solver='lbfgs', penalty='l2', C=1.0, max_iter=2/
+            ).fit(self.__X_train, self.__y_train) #l1 = lasso, choose the best features /solver='lbfgs', penalty='l2', C=1.0, max_iter=2/
         #With Lasso = l1 & solver='liblinear' there is a 0.5% better accurancy at cross validaton
         
-        self.yhat = self.logisticRegressor.predict(self.X_test)
+        self.__yhat = self.__logisticRegressor.predict(self.__X_test)
         #print(self.yhat[:10])
         
-        yhat_prob = self.logisticRegressor.predict_proba(self.X_test) #see the probability
+        yhat_prob = self.__logisticRegressor.predict_proba(self.__X_test) #see the probability
         print(yhat_prob[:4])
         
-        coefficients = pd.Series(self.logisticRegressor.coef_[0], index=self.churn_df.columns[:-1])
+        coefficients = pd.Series(self.__logisticRegressor.coef_[0], index=self.__churn_df.columns[:-1])
         coefficients.sort_values().plot(kind='barh')
         plt.title("Feature Coefficients in Logistic Regression Churn Model")
         plt.xlabel("Coefficient Value")
         plt.show() 
         
-        print(log_loss(self.y_test, yhat_prob))
+        print(log_loss(self.__y_test, yhat_prob))
     
-    def accurancy(self):
-        y_pred = self.logisticRegressor.predict(self.X_test)
-        accuracy = accuracy_score(self.y_test, y_pred)
+    def accurancy(self) -> None:
+        y_pred = self.__logisticRegressor.predict(self.__X_test)
+        accuracy = accuracy_score(self.__y_test, y_pred)
         print("Accuracy: {:.2f}%".format(accuracy * 100))
         
-    def cross_validation(self):
-        scores = cross_val_score(self.logisticRegressor, self.X_norm, self.y, cv=10)
+    def cross_validation(self) -> None:
+        scores = cross_val_score(self.__logisticRegressor, self.__X_norm, self.__y, cv=10)
         print("Cross-validation scores: ", scores)
         print("Mean cross-validation accuracy: {:.2f}%".format(scores.mean() * 100))
         
-    def evaluate(self):
+    def evaluate(self) -> None:
         self.accurancy()
         self.cross_validation()
         
     #Show us vision of that, which feature is better
     def drop_column_logloss(self):
         '''Show us which of the feature are better then others to help you to select the best features'''
-        base_prob = self.logisticRegressor.predict_proba(self.X_test)
-        base_loss = log_loss(self.y_test, base_prob)
+        base_prob = self.__logisticRegressor.predict_proba(self.__X_test)
+        base_loss = log_loss(self.__y_test, base_prob)
         print(f"Base log-loss (with all features): {base_loss:.6f}")
 
-        feat_names = list(self.churn_df.columns[:-1])
+        feat_names = list(self.__churn_df.columns[:-1])
         results = []
         for i, feat in enumerate(feat_names):
-            X_all = np.asarray(self.churn_df[feat_names])
+            X_all = np.asarray(self.__churn_df[feat_names])
             #drop column i
             mask = [j for j in range(X_all.shape[1]) if j != i]
             X_new = X_all[:, mask]
             X_new_scaled = StandardScaler().fit_transform(X_new)
-            Xtr, Xte, ytr, yte = train_test_split(X_new_scaled, self.y, test_size=0.2, random_state=42)
+            Xtr, Xte, ytr, yte = train_test_split(X_new_scaled, self.__y, test_size=0.2, random_state=42)
             clf = LogisticRegression(solver='lbfgs', penalty='l2', C=1.0, max_iter=200)
             clf.fit(Xtr, ytr)
             loss = log_loss(yte, clf.predict_proba(Xte))
@@ -124,7 +127,7 @@ class Logistic_model:
         return df
         #Better acc when we droped some cols    
         
-    def run(self):
+    def run(self) -> None:
         self.loadData()
         self.preprocessing()
         self.splitDataSet()

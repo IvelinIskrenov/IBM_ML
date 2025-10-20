@@ -14,33 +14,36 @@ class FuelCO2Model:
     '''
     def __init__(self, url: str = None):
         self.url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%202/data/FuelConsumptionCo2.csv"
-        self.df = None
-        self.X = None
-        self.y = None
-        self.X_std = None
-        self.X_train = None
-        self.X_test = None
-        self.y_train = None
-        self.y_test = None
-        self.std_scaler = None
-        self.mRegression = None
+        self.__data = None
+        self.__X = None
+        self.__y = None
+        self.__X_std = None
+        self.__X_train = None
+        self.__X_test = None
+        self.__y_train = None
+        self.__y_test = None
+        self.__std_scaler = None
+        self.__mRegression = None
 
-    def load_data(self):
+    def load_data(self) -> None:
         '''loads data and performs init cleaning'''
-        self.df = pd.read_csv(self.url)
-        print("Sample 5 rows:")
-        print(self.df.sample(5))
-        print(self.df.describe())
+        try:
+            self.__data = pd.read_csv(self.url)
+            print("Sample 5 rows:")
+            print(self.__data.sample(5))
+            print(self.__data.describe())
 
-        # drop hte first col
-        self.df = self.df.drop(['MODELYEAR', 'MAKE', 'MODEL', 'VEHICLECLASS', 'TRANSMISSION', 'FUELTYPE',], axis=1)
+            # drop hte first col
+            self.__data = self.__data.drop(['MODELYEAR', 'MAKE', 'MODEL', 'VEHICLECLASS', 'TRANSMISSION', 'FUELTYPE',], axis=1)
 
-        self.df = self.df.drop(['CYLINDERS', 'FUELCONSUMPTION_CITY', 'FUELCONSUMPTION_HWY', 'FUELCONSUMPTION_COMB',], axis=1)
+            self.__data = self.__data.drop(['CYLINDERS', 'FUELCONSUMPTION_CITY', 'FUELCONSUMPTION_HWY', 'FUELCONSUMPTION_COMB',], axis=1)
 
-        print(self.df.head(9))
+            print(self.__data.head(9))
+        except Exception:
+            print(f"Error while loading data !!!")
 
-    def visualize_pairplot(self):
-        axes = pd.plotting.scatter_matrix(self.df, alpha=0.2, figsize=(8, 8))
+    def visualize_pairplot(self) -> None:
+        axes = pd.plotting.scatter_matrix(self.__data, alpha=0.2, figsize=(8, 8))
         for ax in axes.flatten():
             ax.xaxis.label.set_rotation(90)
             ax.yaxis.label.set_rotation(0)
@@ -51,60 +54,62 @@ class FuelCO2Model:
         plt.show()
         # from this example, we see that the fuel con. and CO2 are no linear
 
-    def extract_cols(self):
+    def extract_cols(self) -> None:
         '''Extracts the features cols'''
         #self.X = self.df[['ENGINESIZE', 'VEHICLEWEIGHT']].to_numpy()
         #self.y = self.df[['CO2EMISSIONS']].to_numpy()
-        self.X = self.df.iloc[:,[0,1]]
-        self.y = self.df.iloc[:,[2]]
+        self.__X = self.__data.iloc[:,[0,1]]
+        self.__y = self.__data.iloc[:,[2]]
 
     # - Preprocess selected features - #
-    def preprocess(self):
+    def preprocess(self) -> None:
         '''Standardizes'''
-        self.std_scaler = StandardScaler()
-        self.X_std = self.std_scaler.fit_transform(self.X)
+        self.__std_scaler = StandardScaler()
+        self.__X_std = self.__std_scaler.fit_transform(self.__X)
 
         print('\nStandardized features description:')
-        print(pd.DataFrame(self.X_std, columns=['ENGINESIZE', 'VEHICLEWEIGHT']).describe().round(2))
+        print(pd.DataFrame(self.__X_std, columns=['ENGINESIZE', 'VEHICLEWEIGHT']).describe().round(2))
 
     # - Create train and test dataset - #
-    def split(self, test_size: float = 0.2, random_state: int = 42):
+    def split(self, test_size: float = 0.2, random_state: int = 42) -> None:
         '''splits the data'''
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            self.X_std, self.y, test_size=test_size, random_state=random_state
+        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(
+            self.__X_std, self.__y, test_size=test_size, random_state=random_state
         )
 
     # - Build ML Regression - #
-    def train(self): 
+    def train(self) -> None: 
         '''Trains and build the Multiple linear Regression'''
-        self.mRegression = lm.LinearRegression()
-        self.mRegression.fit(self.X_train, self.y_train)
+        try:
+            self.__mRegression = lm.LinearRegression()
+            self.__mRegression.fit(self.__X_train, self.__y_train)
 
-        coef_ = self.mRegression.coef_
-        intercept_ = self.mRegression.intercept_
+            coef_ = self.__mRegression.coef_
+            intercept_ = self.__mRegression.intercept_
 
-        print('\nCoefficients (standardized space): ', coef_)
-        print('Intercept (standardized space): ', intercept_)
+            print('\nCoefficients (standardized space): ', coef_)
+            print('Intercept (standardized space): ', intercept_)
 
-        #standard deviation parameters
-        means_ = self.std_scaler.mean_
-        std_devs_ = np.sqrt(self.std_scaler.var_)
+            #standard deviation parameters
+            means_ = self.__std_scaler.mean_
+            std_devs_ = np.sqrt(self.__std_scaler.var_)
 
-        #least squares param can be calculated relative to original in unstandardized feature space
-        coef_original = coef_ / std_devs_
-        intercept_original = intercept_ - np.sum((means_ * coef_) / std_devs_)
+            #least squares param can be calculated relative to original in unstandardized feature space
+            coef_original = coef_ / std_devs_
+            intercept_original = intercept_ - np.sum((means_ * coef_) / std_devs_)
 
-        print('\nCoefficients (original feature space): ', coef_original)
-        print('Intercept (original feature space): ', intercept_original)
-
+            print('\nCoefficients (original feature space): ', coef_original)
+            print('Intercept (original feature space): ', intercept_original)
+        except Exception:
+            print(f"Error in training model !!!")
     #from stackoverflow(IBM VS)
-    def visualize_3d(self):
+    def visualize_3d(self) -> None:
         '''Visiz. the regression plane in 3D'''
-        coef_ = self.mRegression.coef_
-        intercept_ = self.mRegression.intercept_
+        coef_ = self.__mRegression.coef_
+        intercept_ = self.__mRegression.intercept_
 
         # Ensure X_test is numpy array
-        X_test_arr = np.asarray(self.X_test)
+        X_test_arr = np.asarray(self.__X_test)
         # X1, X2
         X1 = X_test_arr[:, 0] if X_test_arr.ndim > 1 else X_test_arr
         X2 = X_test_arr[:, 1] if X_test_arr.ndim > 1 else np.zeros_like(X1)
@@ -119,8 +124,8 @@ class FuelCO2Model:
         y_surf = intercept_ + coef_[0, 0] * x1_surf + coef_[0, 1] * x2_surf
 
         # Make sure y_test and y_pred are 1D numpy arrays
-        y_test_arr = np.asarray(self.y_test).ravel()
-        y_pred = self.mRegression.predict(self.X_test)
+        y_test_arr = np.asarray(self.__y_test).ravel()
+        y_pred = self.__mRegression.predict(self.__X_test)
         y_pred_arr = np.asarray(y_pred).ravel()
 
         # Now boolean masks (1D numpy)
@@ -155,24 +160,24 @@ class FuelCO2Model:
         plt.show()
 
 
-    def simple_2d_plots_vis(self):
+    def simple_2d_plots_vis(self) -> None:
         '''2D plots for individual feature relationships'''
-        coef_ = self.mRegression.coef_
-        intercept_ = self.mRegression.intercept_
+        coef_ = self.__mRegression.coef_
+        intercept_ = self.__mRegression.intercept_
 
-        plt.scatter(self.X_train[:, 0], self.y_train, color='blue')
-        plt.plot(self.X_train[:, 0], coef_[0, 0] * self.X_train[:, 0] + intercept_[0], '-r')
+        plt.scatter(self.__X_train[:, 0], self.__y_train, color='blue')
+        plt.plot(self.__X_train[:, 0], coef_[0, 0] * self.__X_train[:, 0] + intercept_[0], '-r')
         plt.xlabel("Engine size")
         plt.ylabel("Emission")
         plt.show()
 
-        plt.scatter(self.X_train[:, 1], self.y_train, color='blue')
-        plt.plot(self.X_train[:, 1], coef_[0, 1] * self.X_train[:, 1] + intercept_[0], '-r')
+        plt.scatter(self.__X_train[:, 1], self.__y_train, color='blue')
+        plt.plot(self.__X_train[:, 1], coef_[0, 1] * self.__X_train[:, 1] + intercept_[0], '-r')
         plt.xlabel("VEHICLEWEIGHT")
         plt.ylabel("Emission")
         plt.show()
 
-    def run(self):
+    def run(self) -> None:
         self.load_data()
         #self.visualize_pairplot()
         self.extract_cols()
