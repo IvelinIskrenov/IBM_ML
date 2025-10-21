@@ -13,13 +13,13 @@ class KnnModel():
     def __init__(self):
         self.__data = None
         self.__X = None
-        self.y = None
-        self.X_norm = None
-        self.X_train = None
-        self.X_test = None
-        self.y_train = None
-        self.y_test = None
-        self.model_KNN = None
+        self.__y = None
+        self.__X_norm = None
+        self.__X_train = None
+        self.__X_test = None
+        self.__y_train = None
+        self.__y_test = None
+        self.__model_KNN = None
     
     def load_data(self) -> None:
         '''Load data from url'''
@@ -51,13 +51,13 @@ class KnnModel():
         correlation_values = abs(self.__data.corr()['custcat'].drop('custcat')).sort_values(ascending=False)
         features_to_keep = correlation_values[correlation_values > 0.15].index.tolist()
         self.__X = self.__data[features_to_keep] 
-        self.y = self.__data['custcat']
+        self.__y = self.__data['custcat']
         
-        self.X_norm = StandardScaler().fit_transform(self.__X)
+        self.__X_norm = StandardScaler().fit_transform(self.__X)
     
     def split_data(self) -> None:
         '''Splits data into train and test set'''
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X_norm, self.y, test_size=0.2, random_state=4)
+        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(self.__X_norm, self.__y, test_size=0.2, random_state=4)
         
     def build_train_KNN(self) -> None:
         '''Build and train the KNN model with k = 3 hyperparam'''
@@ -65,26 +65,30 @@ class KnnModel():
         k = 9 # best accuracy with k = 94  is 0.445
         #Train Model and Predict  
         knn_classifier = KNeighborsClassifier(n_neighbors=k)
-        self.model_KNN = knn_classifier.fit(self.X_train, self.y_train)
+        self.__model_KNN = knn_classifier.fit(self.__X_train, self.__y_train)
         
     def evaluatuion(self) -> None:
         '''evaluation with accuracy_score'''
-        yhat = self.model_KNN.predict(self.X_test)
-        print("Test set Accuracy: ", accuracy_score(self.y_test, yhat))
+        yhat = self.__model_KNN.predict(self.__X_test)
+        print("Test set Accuracy: ", accuracy_score(self.__y_test, yhat))
        
     def k_tuning(self) -> None:
         '''Tuning the hyperparam k, to optimize the best k value'''
-        Ks = 100
-        acc = np.zeros((Ks))
-        std_acc = np.zeros((Ks))
-        for n in range(1,Ks+1): 
-            KNN_tuning_model = KNeighborsClassifier(n_neighbors = n).fit(self.X_train, self.y_train)
-            yhat = KNN_tuning_model.predict(self.X_test) #
-            acc[n-1] = accuracy_score(self.y_test, yhat) #
-            std_acc[n-1] = np.std(yhat==self.y_test)/np.sqrt(yhat.shape[0]) #
+        try:
+            
+            Ks = 100
+            acc = np.zeros((Ks))
+            std_acc = np.zeros((Ks))
+            for n in range(1,Ks+1): 
+                KNN_tuning_model = KNeighborsClassifier(n_neighbors = n).fit(self.__X_train, self.__y_train)
+                yhat = KNN_tuning_model.predict(self.__X_test) #
+                acc[n-1] = accuracy_score(self.__y_test, yhat) #
+                std_acc[n-1] = np.std(yhat==self.__y_test)/np.sqrt(yhat.shape[0]) #
         
-        self.plot_k_tuning(Ks, acc, std_acc)
-
+            self.plot_k_tuning(Ks, acc, std_acc)
+        except Exception:
+            print(f"Error in k_tuning !!!")
+            
     def plot_k_tuning(self,Ks,acc,std_acc) -> None:
         '''Print the calculates from k_tuning() method which gives the best k value'''
         plt.plot(range(1,Ks+1),acc,'g')

@@ -24,22 +24,22 @@ def timed(func):
 class CreditCardFraudDetection():
     '''Build Decision Tree model and SVM model, then we compare it to see which model works better'''
     def __init__(self):
-        self.data = None
-        self.X = None
-        self.y = None
-        self.X_train = None
-        self.X_test = None
-        self.y_train = None
-        self.y_test = None
-        self.model_SVM = None
-        self.model_DecisionTree = None
+        self.__data = None
+        self.__X = None
+        self.__y = None
+        self.__X_train = None
+        self.__X_test = None
+        self.__y_train = None
+        self.__y_test = None
+        self.__model_SVM = None
+        self.__model_DecisionTree = None
         
     @timed    
     def load_data(self) -> None:
         '''Load the data from the url'''
-        if self.data == None:
+        if self.__data == None:
             url= "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%203/data/creditcard.csv"
-            self.data=pd.read_csv(url)
+            self.__data=pd.read_csv(url)
         print("Data loaded")
         
     @timed 
@@ -49,10 +49,10 @@ class CreditCardFraudDetection():
         finds top 6 features
         '''
         # get the set of distinct classes
-        labels = self.data['Class'].unique()
+        labels = self.__data['Class'].unique()
 
         # get the count of each class
-        sizes = self.data['Class'].value_counts().values
+        sizes = self.__data['Class'].value_counts().values
         
         # plot the class value counts
         fig, ax = plt.subplots()
@@ -60,61 +60,65 @@ class CreditCardFraudDetection():
         ax.set_title('Target Variable Value Counts')
         plt.show()
         
-        correlation_values = self.data.corr()['Class'].drop('Class')
+        correlation_values = self.__data.corr()['Class'].drop('Class')
         correlation_values.plot(kind='barh', figsize=(10, 6))
         plt.show()
         
         
         print("Top 6 correlation features: ")
-        correlation_values = abs(self.data.corr()['Class']).drop('Class')
+        correlation_values = abs(self.__data.corr()['Class']).drop('Class')
         correlation_values = correlation_values.sort_values(ascending=False)[:6]
         print(correlation_values)
         
     @timed 
     def preprocessing(self) -> None:
-        #standardize features by removing the mean and scaling to unit variance
-        self.data.iloc[:, 1:30] = StandardScaler().fit_transform(self.data.iloc[:, 1:30])
-        data_matrix = self.data.values
+        try:
+            
+            #standardize features by removing the mean and scaling to unit variance
+            self.__data.iloc[:, 1:30] = StandardScaler().fit_transform(self.__data.iloc[:, 1:30])
+            data_matrix = self.__data.values
         
-        #self.X = data_matrix[:, 1:30]
-        #set the features from the data_analysis()
-        self.X = data_matrix[:,[3,10,12,14,16,17]]
+            #self.X = data_matrix[:, 1:30]
+            #set the features from the data_analysis()
+            self.__X = data_matrix[:,[3,10,12,14,16,17]]
 
-        self.y = data_matrix[:, 30]
+            self.__y = data_matrix[:, 30]
 
-        self.X = normalize(self.X, norm="l1")
+            self.__X = normalize(self.__X, norm="l1")
         
-        print("Preprocess finished !!!")
+            print("Preprocess finished !!!")
+        except Exception:
+            print(f"Error in preprocessing")
      
     @timed    
     def split_data(self) -> None:
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
+        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(self.__X, self.__y, test_size=0.2, random_state=42)
         print("Split data done !!!")
     
     @timed     
     def buildTrainSVM(self) -> None:
         '''Builds and trains a balanced Linear SVM model'''
-        self.model_SVM = LinearSVC(class_weight='balanced', random_state=31, loss="hinge", fit_intercept=False)
-        self.model_SVM.fit(self.X_train, self.y_train)
+        self.__model_SVM = LinearSVC(class_weight='balanced', random_state=31, loss="hinge", fit_intercept=False)
+        self.__model_SVM.fit(self.__X_train, self.__y_train)
     
     @timed     
     def buildTrainDecisionTree(self) -> None:
         '''Builds and trains a Decision Tree (entropy, max_depth=4) with balanced sample weights'''
-        w_train = compute_sample_weight('balanced', self.y_train)
-        self.model_DecisionTree = DecisionTreeClassifier(criterion='entropy', max_depth=4, random_state=35)
-        self.model_DecisionTree.fit(self.X_train, self.y_train, sample_weight=w_train)
+        w_train = compute_sample_weight('balanced', self.__y_train)
+        self.__model_DecisionTree = DecisionTreeClassifier(criterion='entropy', max_depth=4, random_state=35)
+        self.__model_DecisionTree.fit(self.__X_train, self.__y_train, sample_weight=w_train)
     
     #roc_auc_score - how good models distinguish positive from negative ones
     def evaluationSVM(self) -> None:
         '''evaluation with roc_auc_score on a SVM model'''
-        y_pred_svm = self.model_SVM.decision_function(self.X_test)
-        roc_auc_svm = roc_auc_score(self.y_test, y_pred_svm)
+        y_pred_svm = self.__model_SVM.decision_function(self.__X_test)
+        roc_auc_svm = roc_auc_score(self.__y_test, y_pred_svm)
         print("SVM ROC-AUC score: {0:.3f}".format(roc_auc_svm)) 
         
     def evaluationDecisionTree(self) -> None:
         '''evaluation with roc_auc_score on a DecisionTree model'''
-        y_pred_DecisionTree = self.model_DecisionTree.predict_proba(self.X_test)[:,1]
-        roc_auc_DecisionTree = roc_auc_score(self.y_test, y_pred_DecisionTree)
+        y_pred_DecisionTree = self.__model_DecisionTree.predict_proba(self.__X_test)[:,1]
+        roc_auc_DecisionTree = roc_auc_score(self.__y_test, y_pred_DecisionTree)
         print('Decision Tree ROC-AUC score : {0:.3f}'.format(roc_auc_DecisionTree))  
         
     def run(self) -> None:
