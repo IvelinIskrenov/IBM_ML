@@ -9,30 +9,30 @@ class IrisRecognition():
         Build and use PCA Alg. to project the four-dimensional Iris feature data set down onto a two-dimensional feature space
     '''
     def __init__(self):
-        self.data = None
-        self.X = None
-        self.y = None
-        self.X_scaled = None
-        self.model_pca = None
-        self.X_pca = None
-        self.components = None
+        self.__data = None
+        self.__X = None
+        self.__y = None
+        self.__X_scaled = None
+        self.__model_pca = None
+        self.__X_pca = None
+        self.__components = None
         
     def load_data(self):
         '''
             Load iris (flower) data set
         '''
-        self.data = datasets.load_iris()
-        self.X = self.data.data
-        self.y = self.data.target      
+        self.__data = datasets.load_iris()
+        self.__X = self.__data.data
+        self.__y = self.__data.target      
 
     def preprocessing(self):
         scaler = StandardScaler()
-        self.X_scaled = scaler.fit_transform(self.X)
+        self.__X_scaled = scaler.fit_transform(self.__X)
     
     def build_PCA(self):
         '''Initialize a PCA model and reduce the data set dimensionality to two components'''
-        self.model_pca = PCA(n_components=2)
-        self.X_pca = self.model_pca.fit_transform(self.X_scaled)
+        self.__model_pca = PCA(n_components=2)
+        self.__X_pca = self.__model_pca.fit_transform(self.__X_scaled)
         
     def projection(self):
         '''plot data in 2d'''
@@ -41,8 +41,8 @@ class IrisRecognition():
         colors = ['navy', 'turquoise', 'darkorange']
         lw = 1
 
-        for color, i, target_name in zip(colors, [0, 1, 2], self.data.target_names):
-            plt.scatter(self.X_pca[self.y == i, 0], self.X_pca[self.y == i, 1], color=color, s=50, ec='k',alpha=0.7, lw=lw,
+        for color, i, target_name in zip(colors, [0, 1, 2], self.__data.target_names):
+            plt.scatter(self.__X_pca[self.__y == i, 0], self.__X_pca[self.__y == i, 1], color=color, s=50, ec='k',alpha=0.7, lw=lw,
                         label=target_name)
 
         plt.title('PCA 2-dimensional reduction of IRIS dataset',)
@@ -54,12 +54,12 @@ class IrisRecognition():
     
     def explained_variance(self):
         print(f"Percentage of the original feature space variance do these two combined principal components: ")
-        print(100*self.model_pca.explained_variance_ratio_.sum())
+        print(100*self.__model_pca.explained_variance_ratio_.sum())
     
     #This method is for fixing
     def plott(self):
         '''visualize relationship between the points'''
-        explained_variance_ratio = self.model_pca.explained_variance_ratio_
+        explained_variance_ratio = self.__model_pca.explained_variance_ratio_
 
         # Plot explained variance ratio for each component
         plt.figure(figsize=(10,6))
@@ -83,11 +83,11 @@ class IrisRecognition():
         which align with the directions of maximum variance in the data
         '''
         print(f"Princial components: ")
-        self.components = self.model_pca.components_
-        print(self.components)
+        self.__components = self.__model_pca.components_
+        print(self.__components)
         
         print(f"Explained variance ration: ")
-        print(self.model_pca.explained_variance_ratio_) # first component explains over 91% of the variance in the data
+        print(self.__model_pca.explained_variance_ratio_) # first component explains over 91% of the variance in the data
     
 
     def pipline(self):

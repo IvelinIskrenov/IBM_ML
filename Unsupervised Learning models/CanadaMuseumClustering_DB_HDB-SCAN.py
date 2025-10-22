@@ -83,100 +83,100 @@ def plot_clustered_locations(df,  title='Museums Clustered by Proximity'):
 class MuseumClusterer():
     '''Build and train DBSCAN and HDBSCAN models, then compare them'''
     def __init__(self):
-        self.data = None
-        self.X = None
-        self.y = None
-        self.DBSCAN = None
-        self.HDBSCAN = None
-        self.coords_scaled = None
+        self.__data = None
+        self.__X = None
+        self.__y = None
+        self.__DBSCAN = None
+        self.__HDBSCAN = None
+        self.__coords_scaled = None
     
         # DBSCAN && HDBSCAN params
-        self.min_samples = None #minimum number of samples needed to form a neighbourhood 
-        self.eps = None #neighbourhood search radius
-        self.metric = None #distance measure
+        self.__min_samples = None #minimum number of samples needed to form a neighbourhood 
+        self.__eps = None #neighbourhood search radius
+        self.__metric = None #distance measure
         
         #HDBSCAN param
-        self.min_cluster_size = None
+        self.__min_cluster_size = None
         
 
     def load_data(self, url= 'https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/r-maSj5Yegvw2sJraT15FA/ODCAF-v1-0.csv'):
         '''Loading data form cvs url'''
         try:
-            if self.data == None:
-                self.data = pd.read_csv(url, encoding = "ISO-8859-1")
+            if self.__data == None:
+                self.__data = pd.read_csv(url, encoding = "ISO-8859-1")
         except Exception:
             print(f"Error while loading the data !!!")
     
     def exploar_data(self):
         '''Explore data -> describe(), info(), print some samples, print value counts'''
         print(f"Describe data: ")
-        print(self.data.describe())
+        print(self.__data.describe())
         
         print(f"Data info: ")
-        print(self.data.info())
+        print(self.__data.info())
         
         print(f"Some samples: ")
-        print(self.data.head(5))
+        print(self.__data.head(5))
         
         print(f"Value counts: ")
-        print(self.data.ODCAF_Facility_Type.value_counts())
+        print(self.__data.ODCAF_Facility_Type.value_counts())
     
     def filter_data(self):
-        self.data = self.data[self.data.ODCAF_Facility_Type == 'museum']
-        self.data.ODCAF_Facility_Type.value_counts()
+        self.__data = self.__data[self.__data.ODCAF_Facility_Type == 'museum']
+        self.__data.ODCAF_Facility_Type.value_counts()
         
-        self.data = self.data[['Latitude', 'Longitude']]
-        print(self.data.info())
+        self.__data = self.__data[['Latitude', 'Longitude']]
+        print(self.__data.info())
         
-        self.data = self.data[self.data.Latitude!='..']
+        self.__data = self.__data[self.__data.Latitude!='..']
     
     def preprocessing(self):
         self.filter_data()
-        self.data[['Latitude','Longitude']] = self.data[['Latitude','Longitude']].astype('float')
+        self.__data[['Latitude','Longitude']] = self.__data[['Latitude','Longitude']].astype('float')
         
         #Using standardization would be an error becaues we aren't using the full range of the lat/lng feature coordinates
         #Since latitude has a range of +/- 90 degrees and longitude ranges from 0 to 360 degrees, 
         #the correct scaling is to double the longitude coordinates (or half the Latitudes)
-        self.coords_scaled = self.data.copy()
-        self.coords_scaled["Latitude"] = 2*self.coords_scaled["Latitude"]
+        self.__coords_scaled = self.__data.copy()
+        self.__coords_scaled["Latitude"] = 2*self.__coords_scaled["Latitude"]
     
     def build_DBSCAN(self, _min_samples = 3, _eps=1.0, _metric = 'euclidean'):
         '''Build and train the DBSCAN model with params -  min_samles, epsilon, metric = euclidean (default)'''
         
         print(f"Building DBSCAN model ... ")
         
-        self.min_samples = _min_samples 
-        self.eps = _eps
-        self.metric = _metric 
+        self.__min_samples = _min_samples 
+        self.__eps = _eps
+        self.__metric = _metric 
 
-        self.DBSCAN = DBSCAN(eps=self.eps, min_samples=self.min_samples, metric=self.metric).fit(self.coords_scaled)
+        self.__DBSCAN = DBSCAN(eps=self.__eps, min_samples=self.__min_samples, metric=self.__metric).fit(self.__coords_scaled)
         
-        self.data['Cluster'] = self.DBSCAN.fit_predict(self.coords_scaled)  # Assign the cluster labels
+        self.__data['Cluster'] = self.__DBSCAN.fit_predict(self.__coords_scaled)  # Assign the cluster labels
 
-        print(self.data['Cluster'].value_counts())
+        print(self.__data['Cluster'].value_counts())
     
     def build_HDBSCAN(self, _min_samples = None, _min_cluster_size = 3, _metric = 'euclidean'):
         '''Build and train the HDBSCAN model with params -  min_samles = None, min_cluster_size = 3, metric = euclidean (default)'''
         print(f"Building HDBSCAN model ... ")
         
-        self.min_samples = _min_samples
-        self.min_cluster_size = _min_cluster_size
-        self.metric = _metric
-        self.HDBSCAN = hdbscan.HDBSCAN(min_samples = self.min_samples, min_cluster_size = self.min_cluster_size, metric='euclidean')
+        self.__min_samples = _min_samples
+        self.__min_cluster_size = _min_cluster_size
+        self.__metric = _metric
+        self.__HDBSCAN = hdbscan.HDBSCAN(min_samples = self.__min_samples, min_cluster_size = self.__min_cluster_size, metric='euclidean')
         
-        self.data['Cluster'] = self.HDBSCAN.fit_predict(self.coords_scaled)
+        self.__data['Cluster'] = self.__HDBSCAN.fit_predict(self.__coords_scaled)
 
-        print(self.data['Cluster'].value_counts())
+        print(self.__data['Cluster'].value_counts())
     
     def compare_HDB_DB_SCAN(self):
         '''Pipeline of the HDB/DB SCAN compare'''
         self.load_data()
         self.preprocessing()
         self.build_DBSCAN()
-        plot_clustered_locations(self.data)
+        plot_clustered_locations(self.__data)
         
         self.build_HDBSCAN()
-        plot_clustered_locations(self.data)
+        plot_clustered_locations(self.__data)
         
     def run(self):
         '''Pipline on one of the models'''
@@ -194,7 +194,7 @@ class MuseumClusterer():
         else:
             print(f"Invalid model")
             
-        plot_clustered_locations(self.data)
+        plot_clustered_locations(self.__data)
             
 if __name__ == "__main__":
     download_extract_data()
