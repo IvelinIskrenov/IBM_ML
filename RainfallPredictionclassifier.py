@@ -82,15 +82,17 @@ class RaindFallPredictor():
 
     def split_data(self):
         '''Splits the data into train/test data'''
-        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(self.__X, self.__y, test_size=0.2, random_state=42)
+        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(self.__X, self.__y, test_size=0.2,  random_state=42)
     
     def preprocessing(self):
-        try:
+        #try:
             self.__X = self.__data.drop(columns='RainToday', axis=1)
             self.__y = self.__data['RainToday']
             
             print("How balanced are the classes!")
             print(self.__y.value_counts())
+            
+            self.split_data()
             
             self.__numerical_features = self.__X_train.select_dtypes(include=['number']).columns.tolist()
             self.__categorical_features = self.__X_train.select_dtypes(include=['object', 'category']).columns.tolist()
@@ -121,9 +123,23 @@ class RaindFallPredictor():
             #Performing grid search cross-validation and fit the best model
             cv = StratifiedKFold(n_splits=5, shuffle=True)
             
+            grid_search = GridSearchCV(
+                estimator=self.__pipeline,
+                param_grid=self.__param_grid,
+                cv=cv,
+                scoring='accuracy',
+                verbose=2
+            )  
+            grid_search.fit(self.__X_train, self.__y_train)
             
-        except Exception:
-            print(f"Error in preprocessing !!! ")
+            print("\nBest parameters found: ", grid_search.best_params_)
+            print("Best cross-validation score: {:.2f}".format(grid_search.best_score_))
+            
+            test_score = grid_search.score(self.__X_test, self.__y_test)  
+            print("Test set score: {:.2f}".format(test_score))
+            
+        #except Exception:
+            #print(f"Error in preprocessing !!! ")
             
             
     def pipeline(self):
@@ -131,6 +147,7 @@ class RaindFallPredictor():
         self.data_analysis()  
         self.location_selection()
         self.mapping()  
+        #self.split_data()
         self.preprocessing()    
         
 if __name__ == "__main__":
