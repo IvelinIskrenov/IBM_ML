@@ -30,7 +30,9 @@ class RaindFallPredictor():
         self.__preprocessor = None
         self.__pipeline = None
         self.__param_grid = None
-        self.__grid_search = None
+        self.__grid_search_RF = None
+        self.__grid_search_LR = None
+        self.__best_model_LR = None
         
     def load_data(self):
         '''Loading data'''
@@ -38,7 +40,8 @@ class RaindFallPredictor():
             url ="https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/_0eYOqji3unP1tDNKWZMjg/weatherAUS-2.csv"
             self.__data = pd.read_csv(url)
     
-    def data_analysis(self):
+    def data_analysis(self) -> None:
+        ''' Printing head(5), info, and rename the cols in data'''
         print(f"Data head(5) :")
         print(self.__data.head(5))
         self.__data = self.__data.dropna()
@@ -50,7 +53,7 @@ class RaindFallPredictor():
                         'RainTomorrow': 'RainToday'
                         })
     
-    def location_selection(self):
+    def location_selection(self) -> None:
         '''Reducing our attention to a smaller region'''
         print(f"Location selection: ")
         dataEx = self.__data[self.__data.Location.isin(['Melbourne','MelbourneAirport','Watsonia',])] # they are near next to each other
@@ -72,7 +75,7 @@ class RaindFallPredictor():
         else:
             return np.nan
     
-    def mapping(self):
+    def mapping(self) -> None:
         '''Map the dates to seasons and drop the Date col'''
         self.__data['Date'] = pd.to_datetime(self.__data['Date'])
 
@@ -81,11 +84,15 @@ class RaindFallPredictor():
 
         self.__data = self.__data.drop(columns='Date')
 
-    def split_data(self):
+    def split_data(self) -> None:
         '''Splits the data into train/test data'''
         self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(self.__X, self.__y, test_size=0.2,  random_state=42)
     
-    def preprocessing(self):
+    def preprocessing(self) -> None:
+        '''
+            Set X and y data, see value counts, splits data into train/test, identify numerical/categorical features,
+            scale them and make pipeline, make pipeline (processor & classifier)
+        '''
         try:
             self.__X = self.__data.drop(columns='RainToday', axis=1)
             self.__y = self.__data['RainToday']
@@ -114,7 +121,13 @@ class RaindFallPredictor():
                 ('classifier', RandomForestClassifier(random_state=42))
             ])
             
-            #use in a cross validation grid search model optimizer
+        except Exception as e:
+            print(f"Error in preprocessing: {type(e).__name__} - {e}")
+   
+    def train_RF(self) -> None:
+        '''Set param grid, cv = StratifiedKFold, use GridSearchCV, print - best cross-val score, best param, test score'''
+        #use in a cross validation grid search model optimizer
+        try:
             self.__param_grid = {
                 'classifier__n_estimators': [50, 100],
                 'classifier__max_depth': [None, 10, 20],
@@ -124,27 +137,32 @@ class RaindFallPredictor():
             #Performing grid search cross-validation and fit the best model
             cv = StratifiedKFold(n_splits=5, shuffle=True)
             
-            self.__grid_search = GridSearchCV(
+            self.__grid_search_RF = GridSearchCV(
                 estimator=self.__pipeline,
                 param_grid=self.__param_grid,
                 cv=cv,
                 scoring='accuracy',
                 verbose=2
             )  
-            self.__grid_search.fit(self.__X_train, self.__y_train)
+            self.__grid_search_RF.fit(self.__X_train, self.__y_train)
             
-            print("\nBest parameters found: ", self.__grid_search.best_params_)
-            print("Best cross-validation score: {:.2f}".format(self.__grid_search.best_score_))
+            print("\nBest parameters found: ", self.__grid_search_RF.best_params_)
+            print("Best cross-validation score: {:.2f}".format(self.__grid_search_RF.best_score_))
             
-            test_score = self.__grid_search.score(self.__X_test, self.__y_test)  
+            test_score = self.__grid_search_RF.score(self.__X_test, self.__y_test)  
             print("Test set score: {:.2f}".format(test_score))
             
-        except Exception:
-            print(f"Error in preprocessing !!! ")
-            
-    def prediction(self):
+        except Exception as e:
+            print(f"Error in train(): {type(e).__name__} - {e}")  
+                       
+    def prediction(self, model) -> None:
         '''Print classification repport !'''
-        y_pred = self.__grid_search.predict(self.__X_test)
+        if model == "LR":
+            y_pred = self.__grid_search_LR.predict(self.__X_test)
+        elif model == "RF":
+            y_pred = self.__grid_search_RF.predict(self.__X_test)
+            
+        y_pred = self.__grid_search_LR.predict(self.__X_test)
         print("\nClassification Report:")
         print(classification_report(self.__y_test, y_pred))
         
@@ -154,17 +172,17 @@ class RaindFallPredictor():
         plt.title('Confusion Matrix')
         plt.show()
     
-    def feature_importance(self):
+    def feature_importance(self) -> None:
         
         print(f"Feature importance :")
-        feature_importances = self.__grid_search.best_estimator_['classifier'].feature_importances_
+        feature_importances = self.__grid_search_RF.best_estimator_['classifier'].feature_importances_
         # Combine numeric and categorical feature names
-        feature_names = self.__numerical_features + list(self.__grid_search.best_estimator_['preprocessor']
+        feature_names = self.__numerical_features + list(self.__grid_search_RF.best_estimator_['preprocessor']
                                                 .named_transformers_['cat']
                                                 .named_steps['onehot']
                                                 .get_feature_names_out(self.__categorical_features))
 
-        feature_importances = self.__grid_search.best_estimator_['classifier'].feature_importances_
+        feature_importances = self.__grid_search_RF.best_estimator_['classifier'].feature_importances_
 
         importance_df = pd.DataFrame({'Feature': feature_names,
                                       'Importance': feature_importances
@@ -182,94 +200,94 @@ class RaindFallPredictor():
         plt.show()
 
             
-    def pipeline(self):
+    def pipeline(self) -> None:
         self.load_data()
         self.data_analysis()  
         self.location_selection()
         self.mapping()  
-        #self.split_data()
-        self.preprocessing()  
-        self.prediction()  
+        self.preprocessing() 
+    
+    def pipeline_RF(self) -> None:
+        if self.__data is None:
+            self.pipeline()
+        self.train_RF() 
+        #self.prediction("RF")  
         self.feature_importance()
      
-    def pipeline_LR(self):
+    def pipeline_LR(self) -> None:
+        if self.__data is None:
+            self.pipeline()
         try:
-            # 1) Replace classifier step in the pipeline
-            # increase max_iter to ensure convergence for l1 penalty with liblinear
+            #Replace classifier step in the pipeline
             self.__pipeline.set_params(classifier=LogisticRegression(random_state=42, max_iter=1000))
 
-            # 2) Ensure the GridSearchCV uses the updated pipeline as estimator
-            if self.__grid_search is None:
-                # create a new GridSearchCV object if one doesn't exist
+            #Ensure the GridSearchCV uses the updated pipeline as estimator
+            if self.__grid_search_LR is None:
                 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-                self.__grid_search = GridSearchCV(
+                self.__grid_search_LR = GridSearchCV(
                     estimator=self.__pipeline,
                     param_grid={},  # will set below
                     cv=cv,
                     scoring='accuracy',
-                    verbose=2,# ?
-                    n_jobs=-1# ? 
+                    verbose=2 
                 )
             else:
-                # update estimator in the existing GridSearchCV
-                self.__grid_search.estimator = self.__pipeline
+                #update estimator in the existing GridSearchCV
+                self.__grid_search_LR.estimator = self.__pipeline
 
-            # 3) New parameter grid for Logistic Regression
+            #New parameter grid for LR
             self.__param_grid = {
                 'classifier__solver': ['liblinear'],
                 'classifier__penalty': ['l1', 'l2'],
                 'classifier__class_weight': [None, 'balanced']
             }
-            self.__grid_search.param_grid = self.__param_grid
+            self.__grid_search_LR.param_grid = self.__param_grid
 
-            # 4) Ensure cv and other attrs are set (optional but safe)
-            self.__grid_search.cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-            self.__grid_search.scoring = 'accuracy'
-            self.__grid_search.verbose = 2
-            self.__grid_search.n_jobs = -1
+            #Ensure cv and other attrs are set
+            self.__grid_search_LR.cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+            self.__grid_search_LR.scoring = 'accuracy'
+            self.__grid_search_LR.verbose = 2
+            #self.__grid_search.n_jobs = -1
 
-            # 5) Fit GridSearchCV on the training set
-            model = self.__grid_search.fit(self.__X_train, self.__y_train)
+            #Fit GridSearchCV
+            self.__grid_search_LR.fit(self.__X_train, self.__y_train)
 
-            # 6) Print best params and CV score
-            print("\nBest LR parameters found: ", model.best_params_)
-            print("Best cross-validation accuracy: {:.4f}".format(model.best_score_))
+            print("\nBest LR parameters found: ", self.__grid_search_LR.best_params_)
+            print("Best cross-validation accuracy: {:.4f}".format(self.__grid_search_LR.best_score_))
 
-            # 7) Predict on test set
-            y_pred = model.predict(self.__X_test)
+            y_pred = self.__grid_search_LR.predict(self.__X_test)
 
-            # 8) Evaluation: classification report and confusion matrix
             print("\nClassification Report (Logistic Regression):")
             print(classification_report(self.__y_test, y_pred))
-            # Generate the confusion matrix 
+            #Generate the confusion matrix 
             conf_matrix = confusion_matrix(self.__y_test, y_pred)
-
             plt.figure()
             sns.heatmap(conf_matrix, annot=True, cmap='Blues', fmt='d')
 
-            #   Set the title and labels
             plt.title('Titanic Classification Confusion Matrix')
             plt.xlabel('Predicted')
             plt.ylabel('Actual')
 
-            # Show the plot
             plt.tight_layout()
             plt.show()
-            
-            # 9) Save best model for later use
-            self.__best_model = model.best_estimator_
+            #Save best model for later use
+            self.__best_model = self.__grid_search_LR.best_estimator_
             print(classification_report(self.__y_test, y_pred))
-
-
-            # Return predictions in case caller wants them
-            return y_pred
 
         except Exception as e:
             print(f"Error in pipeline_LR !!! {type(e).__name__}: {e}")
-            return None
            
 if __name__ == "__main__":
     print("Starting model ...")
     model = RaindFallPredictor()
-    model.pipeline()
     model.pipeline_LR()
+    #model.pipeline_RF()
+    #model.pipeline_LR()
+    
+    
+    
+    
+    # 1. run only model.pipeline_RF() works.
+    # 2. run only model.pipeline_LR() NO works.
+    # 3. run  model.pipeline_LR() THEN RF NO works.
+    # 4. run  model.pipeline_RF() THEN LR NO works.
