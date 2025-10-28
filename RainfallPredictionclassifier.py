@@ -116,11 +116,6 @@ class RaindFallPredictor():
                 ]
             )
             
-            self.__pipeline = Pipeline(steps=[
-                ('preprocessor', self.__preprocessor),
-                ('classifier', RandomForestClassifier(random_state=42))
-            ])
-            
         except Exception as e:
             print(f"Error in preprocessing: {type(e).__name__} - {e}")
    
@@ -128,6 +123,11 @@ class RaindFallPredictor():
         '''Set param grid, cv = StratifiedKFold, use GridSearchCV, print - best cross-val score, best param, test score'''
         #use in a cross validation grid search model optimizer
         try:
+            self.__pipeline = Pipeline(steps=[
+                ('preprocessor', self.__preprocessor),
+                ('classifier', RandomForestClassifier(random_state=42))
+            ])
+            
             self.__param_grid = {
                 'classifier__n_estimators': [50, 100],
                 'classifier__max_depth': [None, 10, 20],
@@ -175,7 +175,7 @@ class RaindFallPredictor():
     def feature_importance(self) -> None:
         
         print(f"Feature importance :")
-        feature_importances = self.__grid_search_RF.best_estimator_['classifier'].feature_importances_
+        feature_importances = self.__grid_search_RF.best_estimator_['classifier'].feature_importances_ 
         # Combine numeric and categorical feature names
         feature_names = self.__numerical_features + list(self.__grid_search_RF.best_estimator_['preprocessor']
                                                 .named_transformers_['cat']
@@ -281,13 +281,4 @@ if __name__ == "__main__":
     print("Starting model ...")
     model = RaindFallPredictor()
     model.pipeline_LR()
-    #model.pipeline_RF()
-    #model.pipeline_LR()
-    
-    
-    
-    
-    # 1. run only model.pipeline_RF() works.
-    # 2. run only model.pipeline_LR() NO works.
-    # 3. run  model.pipeline_LR() THEN RF NO works.
-    # 4. run  model.pipeline_RF() THEN LR NO works.
+    model.pipeline_RF()
