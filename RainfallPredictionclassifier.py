@@ -86,7 +86,7 @@ class RaindFallPredictor():
 
     def split_data(self) -> None:
         '''Splits the data into train/test data'''
-        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(self.__X, self.__y, test_size=0.2,  random_state=42)
+        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(self.__X, self.__y, test_size=0.2, stratify=self.__y ,random_state=42)
     
     def preprocessing(self) -> None:
         '''
@@ -162,7 +162,7 @@ class RaindFallPredictor():
         elif model == "RF":
             y_pred = self.__grid_search_RF.predict(self.__X_test)
             
-        y_pred = self.__grid_search_LR.predict(self.__X_test)
+        #y_pred = self.__grid_search_LR.predict(self.__X_test)
         print("\nClassification Report:")
         print(classification_report(self.__y_test, y_pred))
         
@@ -211,7 +211,7 @@ class RaindFallPredictor():
         if self.__data is None:
             self.pipeline()
         self.train_RF() 
-        #self.prediction("RF")  
+        self.prediction("RF")  
         self.feature_importance()
      
     def pipeline_LR(self) -> None:
@@ -219,7 +219,12 @@ class RaindFallPredictor():
             self.pipeline()
         try:
             #Replace classifier step in the pipeline
-            self.__pipeline.set_params(classifier=LogisticRegression(random_state=42, max_iter=1000))
+            #self.__pipeline.set_params(classifier=LogisticRegression(random_state=42, max_iter=1000))
+
+            self.__pipeline = Pipeline(steps=[
+                ('preprocessor', self.__preprocessor),
+                ('classifier', LogisticRegression(random_state=42, max_iter=1000))
+            ])
 
             #Ensure the GridSearchCV uses the updated pipeline as estimator
             if self.__grid_search_LR is None:
@@ -255,6 +260,11 @@ class RaindFallPredictor():
             print("\nBest LR parameters found: ", self.__grid_search_LR.best_params_)
             print("Best cross-validation accuracy: {:.4f}".format(self.__grid_search_LR.best_score_))
 
+            test_score = self.__grid_search_LR.score(self.__X_test, self.__y_test)  
+            print("Test set score: {:.2f}".format(test_score))
+            
+            ######
+            # split 
             y_pred = self.__grid_search_LR.predict(self.__X_test)
 
             print("\nClassification Report (Logistic Regression):")
