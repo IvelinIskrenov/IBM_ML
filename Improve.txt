@@ -1,6 +1,7 @@
 Improve KNN
 SVM ? BUG
 Add evaluation Multiple regression task
+Check customer segmentation_kMeans
 
 Basic things:
 Split train:test 80:20
