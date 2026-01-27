@@ -1,2 +1,6 @@
 Improve KNN
 SVM ? BUG
+
+Split train: test.   80:20
+Трябва в CV да има само Train data set-a
+Отделно да проверим колко добре се справя върху test data set
