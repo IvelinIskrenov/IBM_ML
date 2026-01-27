@@ -7,6 +7,7 @@ from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split , cross_val_score #!
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
+from sklearn.pipeline import make_pipeline
 #from sklearn.metrics import recall_score
 #from sklearn.metrics import f1_score
 
@@ -41,9 +42,9 @@ class Logistic_model:
         self.__churn_df = pd.read_csv(self.url)
         self.__churn_df.describe()
         #print(self.churn_df.sample(5))
-    
+      
     def preprocessing(self) -> None:
-        '''Change the pred. value -> int, set the cols and standardizing it '''
+        '''Change the pred. value -> int, set the cols'''
         try:
             print(self.__churn_df.head(9))
             self.__churn_df = self.__churn_df[['tenure', 'income', 'ed', 'equip', 'churn']]#, 'equip'
@@ -52,14 +53,19 @@ class Logistic_model:
             self.__X = np.asarray(self.__churn_df[['tenure', 'income', 'ed', 'equip']]) # ,'age', 'address',||, 'employ' ,,'wireless'
             self.__y = np.asarray(self.__churn_df['churn'])
         
-            self.__X_norm = StandardScaler().fit(self.__X).transform(self.__X)
         except Exception:
             print(f"Error in preprocessing !!!")
             
+    
+            
     def splitDataSet(self, test_size: float = 0.2, random_state: int = 42)  -> None:
         self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(
-            self.__X_norm, self.__y, test_size = test_size, random_state = random_state
-            )
+            self.__X, self.__y, test_size = test_size, random_state = random_state
+            )   
+        
+        scaler = StandardScaler()
+        self.__X_train = scaler.fit_transform(self.__X_train) 
+        self.__X_test = scaler.transform(self.__X_test)
         
     def train(self) -> None:
         '''
@@ -91,8 +97,12 @@ class Logistic_model:
         print("Accuracy: {:.2f}%".format(accuracy * 100))
         
     def cross_validation(self) -> None:
-        scores = cross_val_score(self.__logisticRegressor, self.__X_norm, self.__y, cv=10)
-        print("Cross-validation scores: ", scores)
+
+        pipeline = make_pipeline(StandardScaler(), LogisticRegression(solver='lbfgs'))
+    
+        scores = cross_val_score(pipeline, self.__X, self.__y, cv=10)
+    
+        print("Cross-validation scores: ", scores)  # Overfitting ?, we can use STR. K-FOLD Val.
         print("Mean cross-validation accuracy: {:.2f}%".format(scores.mean() * 100))
         
     def evaluate(self) -> None:
@@ -130,7 +140,7 @@ class Logistic_model:
     def run(self) -> None:
         self.loadData()
         self.preprocessing()
-        self.splitDataSet()
+        self.splitDataSet()    
         self.train()
         self.evaluate()
         self.drop_column_logloss()

@@ -63,19 +63,23 @@ class FuelCO2Model:
 
     # - Preprocess selected features - #
     def preprocess(self) -> None:
-        '''Standardizes'''
-        self.__std_scaler = StandardScaler()
-        self.__X_std = self.__std_scaler.fit_transform(self.__X)
-
-        print('\nStandardized features description:')
-        print(pd.DataFrame(self.__X_std, columns=['ENGINESIZE', 'VEHICLEWEIGHT']).describe().round(2))
+        self.extract_cols() 
+        
 
     # - Create train and test dataset - #
     def split(self, test_size: float = 0.2, random_state: int = 42) -> None:
         '''splits the data'''
         self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(
-            self.__X_std, self.__y, test_size=test_size, random_state=random_state
+            self.__X, self.__y, test_size=test_size, random_state=random_state
         )
+        
+        self.__std_scaler = StandardScaler()
+        self.__X_train = self.__std_scaler.fit_transform(self.__X_train)
+        self.__X_test = self.__std_scaler.transform(self.__X_test)
+        
+        
+        print('\nStandardized features description:')
+        print(pd.DataFrame(self.__X_std, columns=['ENGINESIZE', 'VEHICLEWEIGHT']).describe().round(2))
 
     # - Build ML Regression - #
     def train(self) -> None: 
@@ -180,7 +184,7 @@ class FuelCO2Model:
     def run(self) -> None:
         self.load_data()
         #self.visualize_pairplot()
-        self.extract_cols()
+        #self.extract_cols()
         self.preprocess()
         self.split()
         self.train()
