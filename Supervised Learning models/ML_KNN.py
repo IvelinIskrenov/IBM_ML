@@ -94,7 +94,7 @@ class KnnModel():
             acc = np.zeros((Ks))
             std_acc = np.zeros((Ks))
             for n in range(1,Ks+1): 
-                KNN_tuning_model = KNeighborsClassifier(n_neighbors = n).fit(self.__X_train, self.__y_train)
+                KNN_tuning_model = KNeighborsClassifier(n_neighbors = n).fit(self.__X_train_scaler, self.__y_train)
                 yhat = KNN_tuning_model.predict(self.__X_test) #
                 acc[n-1] = accuracy_score(self.__y_test, yhat) #
                 std_acc[n-1] = np.std(yhat==self.__y_test)/np.sqrt(yhat.shape[0]) #
