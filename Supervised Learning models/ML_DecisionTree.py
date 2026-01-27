@@ -5,7 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn import metrics
-
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 class DecisionTreeModel():
     '''DecisionTree model that determine which drug is most suitable'''
@@ -78,6 +78,13 @@ class DecisionTreeModel():
         '''visualize tree'''
         plot_tree(self.__drugTree)
         plt.show()
+
+    def cross_validation(self) -> None:
+        skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=32)
+        scores = cross_val_score(self.__drugTree, self.__X_trainset, self.__y_trainset, cv=skf)
+    
+        print("Cross-validation scores: ", scores)
+        print("Mean cross-validation accuracy: {:.2f}%".format(scores.mean() * 100))
         
     def run(self) -> None:
         self.download_data()
@@ -88,6 +95,7 @@ class DecisionTreeModel():
         self.train()
         self.evaluation()
         self.visualize()
+        self.cross_validation() # test it
         
 if __name__ == '__main__':
     model = DecisionTreeModel()
