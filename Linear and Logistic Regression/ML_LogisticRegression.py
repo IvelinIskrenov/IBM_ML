@@ -101,7 +101,7 @@ class Logistic_model:
 
         pipeline = make_pipeline(StandardScaler(), LogisticRegression(solver='lbfgs'))
     
-        scores = cross_val_score(pipeline, self.__X, self.__y, cv=10)
+        scores = cross_val_score(pipeline, self.__X_train, self.__y_train, cv=10)
     
         print("Cross-validation scores: ", scores)  # Overfitting ?, we can use STR. K-FOLD Val.
         print("Mean cross-validation accuracy: {:.2f}%".format(scores.mean() * 100))
