@@ -1,5 +1,7 @@
 Improve KNN
 SVM ? BUG
+Add evaluation Multiple regression task
+
 
 Split train: test.   80:20
 Трябва в CV да има само Train data set-a
