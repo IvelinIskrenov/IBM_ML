@@ -22,6 +22,8 @@ class FuelCO2Model:
         self.__X_test = None
         self.__y_train = None
         self.__y_test = None
+        self.__X_train_scaler = None
+        self.__X_test_scaler = None
         self.__std_scaler = None
         self.__mRegression = None
 
@@ -74,19 +76,19 @@ class FuelCO2Model:
         )
         
         self.__std_scaler = StandardScaler()
-        self.__X_train = self.__std_scaler.fit_transform(self.__X_train)
-        self.__X_test = self.__std_scaler.transform(self.__X_test)
+        self.__X_train_scaler = self.__std_scaler.fit_transform(self.__X_train)
+        self.__X_test_scaler = self.__std_scaler.transform(self.__X_test)
         
         
         print('\nStandardized features description:')
-        print(pd.DataFrame(self.__X_std, columns=['ENGINESIZE', 'VEHICLEWEIGHT']).describe().round(2))
+        print(pd.DataFrame(self.__X_train_scaler, columns=['ENGINESIZE', 'VEHICLEWEIGHT']).describe().round(2)) # train_scaler ?
 
     # - Build ML Regression - #
     def train(self) -> None: 
         '''Trains and build the Multiple linear Regression'''
         try:
             self.__mRegression = lm.LinearRegression()
-            self.__mRegression.fit(self.__X_train, self.__y_train)
+            self.__mRegression.fit(self.__X_train_scaler, self.__y_train_scaler)
 
             coef_ = self.__mRegression.coef_
             intercept_ = self.__mRegression.intercept_
