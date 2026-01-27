@@ -1,6 +1,7 @@
 Improve KNN
 Add evaluation Multiple regression task
 Check customer segmentation_kMeans
+Fix ML regression tree
 
 Data leakage: The general rule is to never call fit on the test data
 Avoid data leakage: Always split the data into train and test subsets first, particularly before any preprocessing steps.
@@ -13,6 +14,26 @@ Furthermore, use a fixed integer for your random_state to ensure that different 
 2. Estimator (e.g., RandomForest), Pass -	RandomState instance	To test the model with a different random initialization on each fold, ensuring its performance is robust and not due to luck.
 
 ex. of 2, def rng = np.random.RandomState(35) and pass the rng -> model
+
+###    Feature engeneering    ###
+1. Removing features with low variance
+-Initial cleanup. Use it first to remove "dead" or constant features.
+2. Univariate feature selection
+-High-dimensional data. Use when you have $1000+$ features.
+3. Recursive feature elimination
+-Refining small/medium datasets. Use when accuracy is the priority.
+EX: 
+
+
+X, y = make_friedman1(n_samples=50, n_features=10, random_state=0)
+estimator = LogisticRegression()
+
+selector = RFE(estimator, n_features_to_select=5, step=1)
+selector = selector.fit(X, y > y.mean()) # Правим го на класификация
+
+print(f"Selected cols: {selector.support_}")
+print(f"Rang 1 is best: {selector.ranking_}")
+
 
 Basic things:
 Split train:test 80:20

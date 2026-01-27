@@ -26,7 +26,7 @@ class Logistic_model:
         self.__X = None
         self.__y = None
         self.__X_train_scaler = None
-        slef.__y_train_scaler = None
+        self.__y_train_scaler = None
         self.__X_train = None
         self.__X_test = None
         self.__y_train = None

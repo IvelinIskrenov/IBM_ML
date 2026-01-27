@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import Normalizer
+from sklearn.preprocessing import Normalizer, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 
 class RegressionTree():
     '''RegressionTree model which predicts the tip amount (tip_amount) for yellow cab rides in New York'''
@@ -54,11 +54,11 @@ class RegressionTree():
         
         # Normalize Training Data and Apply to Test Data
         # Using Normalizer(norm='l1') axis=1 - on row 
-        scaler = Normalizer(norm='l1') 
+        #scaler = StandardScaler()#scaler = Normalizer(norm='l1') 
         
         # Fit/Transform on Train, Transform only on Test
-        self.__X_train = scaler.fit_transform(self.__X_train)
-        self.__X_test = scaler.transform(self.__X_test)
+        #self.__X_train = scaler.fit_transform(self.__X_train)
+        #self.__X_test = scaler.transform(self.__X_test)
     
     def trainModel(self) -> None:
         '''Train the Decision Tree Regressor model with max-dedpth = 8'''
@@ -74,8 +74,8 @@ class RegressionTree():
         mse_score = mean_squared_error(self.__y_test, y_pred)
         print('MSE score : {0:.3f}'.format(mse_score))
 
-        r2_score = self.__regressionTree.score(self.__X_test,self.__y_test)
-        print('R^2 score : {0:.3f}'.format(r2_score))
+        r2_scoree = r2_score(self.__y_test, y_pred) # r2_score = self.__regressionTree.score(self.__X_test,self.__y_test)
+        print('R^2 score : {0:.3f}'.format(r2_scoree))
         
     def run(self) -> None:
         self.download_data()
