@@ -19,6 +19,8 @@ class KnnModel():
         self.__X_test = None
         self.__y_train = None
         self.__y_test = None
+        self.__X_train_scaler = None 
+        self.__X_test_scaler = None
         self.__model_KNN = None
     
     def load_data(self) -> None:
@@ -68,8 +70,8 @@ class KnnModel():
         
         # SCALING
         scaler = StandardScaler()
-        self.__X_train = scaler.fit_transform(self.__X_train)
-        self.__X_test = scaler.transform(self.__X_test)
+        self.__X_train_scaler = scaler.fit_transform(self.__X_train)
+        self.__X_test_scaler = scaler.transform(self.__X_test)
         
     def build_train_KNN(self) -> None:
         '''Build and train the KNN model with k = 3 hyperparam'''
@@ -77,7 +79,7 @@ class KnnModel():
         k = 9 # best accuracy with k = 94  is 0.445
         #Train Model and Predict  
         knn_classifier = KNeighborsClassifier(n_neighbors=k)
-        self.__model_KNN = knn_classifier.fit(self.__X_train, self.__y_train)
+        self.__model_KNN = knn_classifier.fit(self.__X_train_scaler, self.__y_train)
         
     def evaluatuion(self) -> None:
         '''evaluation with accuracy_score'''
