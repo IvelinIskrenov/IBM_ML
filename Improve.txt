@@ -6,6 +6,12 @@ Data leakage: The general rule is to never call fit on the test data
 Avoid data leakage: Always split the data into train and test subsets first, particularly before any preprocessing steps.
 https://scikit-learn.org/stable/common_pitfalls.html#how-to-avoid-data-leakage
 
+Furthermore, use a fixed integer for your random_state to ensure that different models are compared on identical data splits, making your performance evaluations fair and reproducible.
+
+CV Splitter (e.g., KFold), Pass -	Integer (e.g., 42),	To ensure that different models (e.g., LDA, DecisionTree) are evaluated on the exact same folds (comparing apples to apples).
+
+Estimator (e.g., RandomForest), Pass -	RandomState instance	To test the model with a different random initialization on each fold, ensuring its performance is robust and not due to luck.
+
 Basic things:
 Split train:test 80:20
 Трябва в CV да има само Train data set-a
