@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import normalize
+from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error
@@ -37,21 +37,28 @@ class RegressionTree():
         abs(correlation_values).sort_values(ascending=False)[:3] #!!!
     
     def preprocessing(self) -> None:
-        '''Prepare data for training, normalize the feature matrix'''
-        self.__y = self.__data[['tip_amount']].values.astype('float32')
-        proc_data = self.__data.drop(['tip_amount'], axis=1) # labeled matrix
-        #from data analysis we saw the best features
-        proc_data = self.__data.drop(['payment_type', 'VendorID', 'store_and_fwd_flag', 'improvement_surcharge'], axis=1)
+        '''Prepare Raw X and y'''
+        # Define target
+        self.__y = self.__data['tip_amount'].values.astype('float32')
         
-        #get the feature matrix used for training
-        self.__X = proc_data.values # get only the values
+        # Drop columns (Manual selection based on domain/EDA)
+        # We don't normalize here anymore to avoid Leakage
+        self.__X = self.__data.drop(['tip_amount', 'payment_type', 'VendorID', 
+                                     'store_and_fwd_flag', 'improvement_surcharge'], axis=1)
 
-        #normalize the feature matrix
-        self.__X = normalize(self.__X, axis=1, norm='l1', copy=False) 
-        
-        
     def split_data(self) -> None:
-        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(self.__X, self.__y, test_size=0.3, random_state=42)
+        '''Split then Normalize to prevent Leakage'''
+        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(
+            self.__X, self.__y, test_size=0.3, random_state=42
+        )
+        
+        # Normalize Training Data and Apply to Test Data
+        # Using Normalizer(norm='l1') axis=1 - on row 
+        scaler = Normalizer(norm='l1') 
+        
+        # Fit/Transform on Train, Transform only on Test
+        self.__X_train = scaler.fit_transform(self.__X_train)
+        self.__X_test = scaler.transform(self.__X_test)
     
     def trainModel(self) -> None:
         '''Train the Decision Tree Regressor model with max-dedpth = 8'''

@@ -29,28 +29,7 @@ class DecisionTreeModel():
         print(self.__data.info()) #show us the type of data
         print(self.__data.describe())
         # 4 features should be convert from categorical to numecric data
-        
-    
-    def preprocessing(self) -> None:
-        '''convert the object cols into numeric format'''
-        try:
-            
-            label_encoder = LabelEncoder()
-            self.__data['Sex'] = label_encoder.fit_transform(self.__data['Sex']) 
-            self.__data['BP'] = label_encoder.fit_transform(self.__data['BP'])
-            self.__data['Cholesterol'] = label_encoder.fit_transform(self.__data['Cholesterol'])
-        
-            #self.data.isnull().sum()  #cheching to be sure
-        
-            #evaluate the correlation of the target variable with the input features
-            custom_map = {'drugA':0,'drugB':1,'drugC':2,'drugX':3,'drugY':4}
-            self.__data['Drug_num'] = self.__data['Drug'].map(custom_map)
-        
-            #corr() function to find the correlation of the input variables with the target variable
-            print(self.__data.drop('Drug',axis=1).corr()['Drug_num']) #!!!!!
-        except Exception:
-            print(f"Error in preprocessing")
-        
+      
     def distribution(self) -> None:
         '''distribution of the dataset by plotting the count of the records with each drug recommendation'''
         category_counts = self.__data['Drug'].value_counts()
@@ -65,9 +44,25 @@ class DecisionTreeModel():
 
     def split_data(self) -> None:
         y = self.__data['Drug']
-        X = self.__data.drop(['Drug','Drug_num'], axis=1)
+        X = self.__data.drop(['Drug'], axis=1)
         
-        self.__X_trainset, self.__X_testset, self.__y_trainset, self.__y_testset = train_test_split(X, y, test_size=0.3, random_state=32)
+        self.__X_trainset, self.__X_testset, self.__y_trainset, self.__y_testset = train_test_split(
+            X, y, test_size=0.3, random_state=32
+        )
+
+    def preprocessing(self) -> None:
+        '''
+        Encodes categorical features into numerical format using LabelEncoder.
+        Applies fit_transform on the training set and transform on the test set
+        to prevent data leakage.
+        '''
+        cols_to_encode = ['Sex', 'BP', 'Cholesterol']
+        
+        for col in cols_to_encode:
+            le = LabelEncoder()
+
+            self.__X_trainset[col] = le.fit_transform(self.__X_trainset[col])
+            self.__X_testset[col] = le.transform(self.__X_testset[col])
     
     def train(self) -> None:
         '''train the model Decision Tree Classifier with entropy and max-depth = 4'''
@@ -87,9 +82,9 @@ class DecisionTreeModel():
     def run(self) -> None:
         self.download_data()
         self.data_analysis()
+        self.split_data()
         self.preprocessing()
         self.distribution()
-        self.split_data()
         self.train()
         self.evaluation()
         self.visualize()

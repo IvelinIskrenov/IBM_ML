@@ -46,18 +46,30 @@ class KnnModel():
              
     
     def preprocessing(self) -> None:
-        '''Standartising the values'''
-        #keep the features with corrValue > 0.15
-        correlation_values = abs(self.__data.corr()['custcat'].drop('custcat')).sort_values(ascending=False)
-        features_to_keep = correlation_values[correlation_values > 0.15].index.tolist()
-        self.__X = self.__data[features_to_keep] 
+        '''Define the data'''
+        self.__X = self.__data.drop('custcat', axis=1) 
         self.__y = self.__data['custcat']
         
-        self.__X_norm = StandardScaler().fit_transform(self.__X)
-    
     def split_data(self) -> None:
+        
         '''Splits data into train and test set'''
-        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(self.__X_norm, self.__y, test_size=0.2, random_state=4)
+        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(
+            self.__X, self.__y, test_size=0.2, random_state=4
+        )
+        
+        # 2. FEATURE SELECTION
+        train_full = pd.concat([self.__X_train, self.__y_train], axis=1)
+        corr_vals = abs(train_full.corr()['custcat'].drop('custcat'))
+        features_to_keep = corr_vals[corr_vals > 0.15].index.tolist()
+        
+        # filter the data
+        self.__X_train = self.__X_train[features_to_keep]
+        self.__X_test = self.__X_test[features_to_keep]
+        
+        # SCALING
+        scaler = StandardScaler()
+        self.__X_train = scaler.fit_transform(self.__X_train)
+        self.__X_test = scaler.transform(self.__X_test)
         
     def build_train_KNN(self) -> None:
         '''Build and train the KNN model with k = 3 hyperparam'''
