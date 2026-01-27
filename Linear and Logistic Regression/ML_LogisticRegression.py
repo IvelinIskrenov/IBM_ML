@@ -25,7 +25,8 @@ class Logistic_model:
         self.__churn_df = None
         self.__X = None
         self.__y = None
-        self.__X_norm = None
+        self.__X_train_scaler = None
+        slef.__y_train_scaler = None
         self.__X_train = None
         self.__X_test = None
         self.__y_train = None
@@ -64,8 +65,8 @@ class Logistic_model:
             )   
         
         scaler = StandardScaler()
-        self.__X_train = scaler.fit_transform(self.__X_train) 
-        self.__X_test = scaler.transform(self.__X_test)
+        self.__X_train_scaler = scaler.fit_transform(self.__X_train) 
+        self.__X_test_scaler = scaler.transform(self.__X_test)
         
     def train(self) -> None:
         '''
@@ -74,7 +75,7 @@ class Logistic_model:
         '''
         self.__logisticRegressor = LogisticRegression(
             solver='lbfgs', penalty='l2', C=1.0, max_iter=100
-            ).fit(self.__X_train, self.__y_train) #l1 = lasso, choose the best features /solver='lbfgs', penalty='l2', C=1.0, max_iter=2/
+            ).fit(self.__X_train_scaler, self.__y_train) #l1 = lasso, choose the best features /solver='lbfgs', penalty='l2', C=1.0, max_iter=2/
         #With Lasso = l1 & solver='liblinear' there is a 0.5% better accurancy at cross validaton
         
         self.__yhat = self.__logisticRegressor.predict(self.__X_test)
