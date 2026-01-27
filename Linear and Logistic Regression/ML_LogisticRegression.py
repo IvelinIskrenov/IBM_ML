@@ -145,6 +145,7 @@ class Logistic_model:
         self.train()
         self.evaluate()
         self.drop_column_logloss()
+        #self.accuracy() test it
         
 if __name__ == '__main__':
     model = Logistic_model()
