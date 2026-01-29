@@ -78,10 +78,10 @@ class Logistic_model:
             ).fit(self.__X_train_scaler, self.__y_train) #l1 = lasso, choose the best features /solver='lbfgs', penalty='l2', C=1.0, max_iter=2/
         #With Lasso = l1 & solver='liblinear' there is a 0.5% better accurancy at cross validaton
         
-        self.__yhat = self.__logisticRegressor.predict(self.__X_test)
+        self.__yhat = self.__logisticRegressor.predict(self.__X_test_scaler)
         #print(self.yhat[:10])
         
-        yhat_prob = self.__logisticRegressor.predict_proba(self.__X_test) #see the probability
+        yhat_prob = self.__logisticRegressor.predict_proba(self.__X_test_scaler) #see the probability
         print(yhat_prob[:4])
         
         coefficients = pd.Series(self.__logisticRegressor.coef_[0], index=self.__churn_df.columns[:-1])
@@ -93,7 +93,7 @@ class Logistic_model:
         print(log_loss(self.__y_test, yhat_prob))
     
     def accurancy(self) -> None:
-        y_pred = self.__logisticRegressor.predict(self.__X_test)
+        y_pred = self.__logisticRegressor.predict(self.__X_test_scaler)
         accuracy = accuracy_score(self.__y_test, y_pred)
         print("Accuracy: {:.2f}%".format(accuracy * 100))
         
