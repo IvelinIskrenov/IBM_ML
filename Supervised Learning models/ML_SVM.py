@@ -39,7 +39,7 @@ class CreditCardFraudDetection():
         '''Load the data from the url'''
         if self.__data == None:
             url= "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%203/data/creditcard.csv"
-            self.__data=pd.read_csv(url)
+            self.__data=pd.read_csv(url, nrows=1000) # FIX THE URL LINK (OUT OF WORK)
         print("Data loaded")
         
     @timed 
@@ -73,7 +73,7 @@ class CreditCardFraudDetection():
     @timed 
     def preprocessing(self) -> None:
         try:
-            
+            print("Preprocessing started !")
             #standardize features by removing the mean and scaling to unit variance
             self.__data.iloc[:, 1:30] = StandardScaler().fit_transform(self.__data.iloc[:, 1:30])
             data_matrix = self.__data.values

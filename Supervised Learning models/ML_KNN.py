@@ -2,10 +2,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.feature_selection import SelectKBest, f_classif
+
 
 
 class KnnModel():
@@ -59,12 +61,17 @@ class KnnModel():
             self.__X, self.__y, test_size=0.2, random_state=4
         )
         
-        # 2. FEATURE SELECTION
-        train_full = pd.concat([self.__X_train, self.__y_train], axis=1)
-        corr_vals = abs(train_full.corr()['custcat'].drop('custcat'))
-        features_to_keep = corr_vals[corr_vals > 0.15].index.tolist()
-        
-        # filter the data
+        # FEATURE SELECTION
+        #train_full = pd.concat([self.__X_train, self.__y_train], axis=1)
+        #corr_vals = abs(train_full.corr()['custcat'].drop('custcat'))
+        #features_to_keep = corr_vals[corr_vals > 0.15].index.tolist()
+
+        selector = SelectKBest(score_func=f_classif, k=5)
+        selector.fit(self.__X_train, self.__y_train) 
+    
+        features_to_keep = self.__X_train.columns[selector.get_support()].tolist()
+        print("Selected features:", features_to_keep)
+    
         self.__X_train = self.__X_train[features_to_keep]
         self.__X_test = self.__X_test[features_to_keep]
         
@@ -83,7 +90,7 @@ class KnnModel():
         
     def evaluatuion(self) -> None:
         '''evaluation with accuracy_score'''
-        yhat = self.__model_KNN.predict(self.__X_test)
+        yhat = self.__model_KNN.predict(self.__X_test_scaler)
         print("Test set Accuracy: ", accuracy_score(self.__y_test, yhat))
        
     def k_tuning(self) -> None:
@@ -95,7 +102,7 @@ class KnnModel():
             std_acc = np.zeros((Ks))
             for n in range(1,Ks+1): 
                 KNN_tuning_model = KNeighborsClassifier(n_neighbors = n).fit(self.__X_train_scaler, self.__y_train)
-                yhat = KNN_tuning_model.predict(self.__X_test) #
+                yhat = KNN_tuning_model.predict(self.__X_test_scaler) #
                 acc[n-1] = accuracy_score(self.__y_test, yhat) #
                 std_acc[n-1] = np.std(yhat==self.__y_test)/np.sqrt(yhat.shape[0]) #
         
@@ -113,17 +120,22 @@ class KnnModel():
         plt.tight_layout()
         plt.show()
         print( "The best accuracy was with", acc.max(), "with k =", acc.argmax()+1) 
+    
+    def cross_validation(self) -> None:
+        skcv = StratifiedKFold(n_splits = 5, shuffle=True, random_state = 32)
+        scores = cross_val_score(self.__model_KNN, self.__X_train_scaler, self.__y_train, cv = skcv)
         
+        print("Mean StratifiedKFold cross-validation accuracy: {:.2f}%".format(scores.mean() * 100))
+     
     def run(self) -> None:
        self.load_data() 
        self.data_analysis()
        self.preprocessing()
        self.split_data()
        self.build_train_KNN()
+       self.k_tuning() 
        self.evaluatuion()
-       self.k_tuning()
-        
-#improve the model!!!        
+       self.cross_validation()   
 
 if __name__ == '__main__':
     model = KnnModel()

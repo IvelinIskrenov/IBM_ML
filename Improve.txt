@@ -1,7 +1,6 @@
-Improve KNN
-Add evaluation Multiple regression task
 Check customer segmentation_kMeans
 Fix ML regression tree
+SVM file out of work
 
 Data leakage: The general rule is to never call fit on the test data
 Avoid data leakage: Always split the data into train and test subsets first, particularly before any preprocessing steps.

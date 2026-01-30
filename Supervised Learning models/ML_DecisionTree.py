@@ -72,7 +72,7 @@ class DecisionTreeModel():
     def evaluation(self) -> None:
         '''evaluation with accurancy_score'''
         tree_predictions = self.__drugTree.predict(self.__X_testset)
-        print("Decision Trees's Accuracy: ", metrics.accuracy_score(self.__y_testset, tree_predictions))
+        print("Decision Trees's Accuracy: ", metrics.accuracy_score(self.__y_testset, tree_predictions) * 100, "%")
         
     def visualize(self) -> None:
         '''visualize tree'''

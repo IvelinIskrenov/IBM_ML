@@ -5,8 +5,10 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.metrics import accuracy_score
 from sklearn.multiclass import OneVsOneClassifier
+from sklearn.feature_selection import SelectKBest, f_classif
 
 class MultiClass_Classification:
     '''
@@ -20,6 +22,8 @@ class MultiClass_Classification:
         self.__X_test = None
         self.__y_train = None
         self.__y_test = None
+        self.__ovo = None
+        self.__ova = None
         self.__feature_names = None
 
     def load_data(self) -> None:
@@ -61,6 +65,7 @@ class MultiClass_Classification:
         Scales numerical features and encodes categorical features.
         '''
         try:
+            
             # numerical Feature Scaling
             num_cols = self.__X_train.select_dtypes(include=['float64', 'int64']).columns.tolist()
             scaler = StandardScaler()
@@ -71,6 +76,7 @@ class MultiClass_Classification:
 
             # categorical Feature Encoding (One-Hot Encoding)
             cat_cols = self.__X_train.select_dtypes(include=['object']).columns.tolist()
+            print(cat_cols)
             encoder = OneHotEncoder(sparse_output=False, drop='first')
             
             # fit only on training data, then transform both sets
@@ -84,31 +90,40 @@ class MultiClass_Classification:
             # store feature names for visualization purposes
             self.__feature_names = num_cols + encoder.get_feature_names_out(cat_cols).tolist()
             
+            selector = SelectKBest(score_func=f_classif, k=3)
+            selector.fit(self.__X_train, self.__y_train) 
+    
+            features_to_keep = self.__X_train.columns[selector.get_support()].tolist()
+            print("Selected features:", features_to_keep)
+    
+            self.__X_train = self.__X_train[features_to_keep]
+            self.__X_test = self.__X_test[features_to_keep]
+            
         except Exception as e:
             print(f"Error in preprocessing: {e}")
 
     def ova(self) -> None:
         '''Train and evaluate using the One-vs-Rest (One-vs-All) strategy'''
-        model = LogisticRegression(multi_class='ovr', max_iter=1000)
-        model.fit(self.__X_train, self.__y_train)
+        self.__ova = LogisticRegression(multi_class='ovr', max_iter=1000)
+        self.__ova.fit(self.__X_train, self.__y_train)
         
-        y_pred = model.predict(self.__X_test)
+        y_pred = self.__ova.predict(self.__X_test)
         print(f"One-vs-All Accuracy: {accuracy_score(self.__y_test, y_pred):.4f}")
         
         # Calculate feature importance based on coefficients
-        importance = np.mean(np.abs(model.coef_), axis=0)
+        importance = np.mean(np.abs(self.__ova.coef_), axis=0)
         self._plot_importance(importance, "One-vs-All")
 
     def ovo(self) -> None:
         '''Train and evaluate using the One-vs-One strategy'''
-        model_ovo = OneVsOneClassifier(LogisticRegression(max_iter=1000))
-        model_ovo.fit(self.__X_train, self.__y_train)
+        self.__ovo = OneVsOneClassifier(LogisticRegression(max_iter=1000))
+        self.__ovo.fit(self.__X_train, self.__y_train)
         
-        y_pred = model_ovo.predict(self.__X_test)
+        y_pred = self.__ovo.predict(self.__X_test)
         print(f"One-vs-One Accuracy: {accuracy_score(self.__y_test, y_pred):.4f}")
         
         # Aggregate coefficients from the multiple binary estimators used in OvO
-        coefs = np.array([est.coef_[0] for est in model_ovo.estimators_])
+        coefs = np.array([est.coef_[0] for est in self.__ovo.estimators_])
         importance = np.mean(np.abs(coefs), axis=0)
         self._plot_importance(importance, "One-vs-One")
 
@@ -121,6 +136,12 @@ class MultiClass_Classification:
         plt.xlabel("Mean Absolute Coefficient Value")
         plt.show()
 
+    def cross_validation(self, model):
+        skf = StratifiedKFold(n_splits = 10, shuffle = True, random_state = 32)
+        scores = cross_val_score(estimator=model, X=self.__X_train, y=self.__y_train, cv = skf)
+        
+        print(f"Mean SKF CV accuracy for model {model} is: {scores.mean() * 100:.2f}%")
+    
     def run(self):
         '''Execute the full ML pipeline'''
         self.load_data()
@@ -128,7 +149,9 @@ class MultiClass_Classification:
         self.prepare_and_split() 
         self.preprocessing()     
         self.ova()
+        self.cross_validation(self.__ova)
         self.ovo()
+        self.cross_validation(self.__ovo)
 
 if __name__ == '__main__':
     model = MultiClass_Classification()

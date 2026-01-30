@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.feature_selection import SelectKBest, f_regression
 from sklearn.preprocessing import Normalizer, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
@@ -43,14 +44,24 @@ class RegressionTree():
         
         # Drop columns (Manual selection based on domain/EDA)
         # We don't normalize here anymore to avoid Leakage
-        self.__X = self.__data.drop(['tip_amount', 'payment_type', 'VendorID', 
-                                     'store_and_fwd_flag', 'improvement_surcharge'], axis=1)
+        self.__X = self.__data.drop(['tip_amount'], axis=1) # , 'payment_type', 'VendorID', 'store_and_fwd_flag', 'improvement_surcharge'
 
     def split_data(self) -> None:
         '''Split then Normalize to prevent Leakage'''
         self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(
             self.__X, self.__y, test_size=0.3, random_state=42
         )
+        
+        # Feature eng.
+        
+        selector = SelectKBest(score_func=f_regression, k=5)
+        selector.fit(self.__X_train, self.__y_train) 
+    
+        features_to_keep = self.__X_train.columns[selector.get_support()].tolist()
+        print("Selected features:", features_to_keep)
+    
+        self.__X_train = self.__X_train[features_to_keep]
+        self.__X_test = self.__X_test[features_to_keep]
         
         # Normalize Training Data and Apply to Test Data
         # Using Normalizer(norm='l1') axis=1 - on row 
